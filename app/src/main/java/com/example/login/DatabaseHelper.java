@@ -5,157 +5,224 @@ import android.os.AsyncTask;
 import android.util.Log;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Properties;
 import java.io.IOException;
 
 public class DatabaseHelper {
-    protected static String db = "project"; // Replace with your database name
-    protected static String user = "root";
-    protected static String pass = "root";
-    public static String ip = "192.168.115.137";
     private static final String TAG = "DatabaseHelper";
-    private static final int PORT = 3306;
-    private static final int TIMEOUT = 5000; // 5 seconds
 
-    public interface DatabaseConnectionCallback {
-        void onConnectionResult(boolean success, String message);
+    // Database Configuration
+    private static final String DB_NAME = "project";
+    private static final String DB_USER = "root";
+    private static final String DB_PASS = "root";
+    private static final String DB_IP = "192.168.115.137";
+    private static final int DB_PORT = 3306;
+    private static final int TIMEOUT = 5000;
+
+    // Callback Interfaces
+    public interface DatabaseCallback {
+        void onResult(boolean success, String message);
     }
 
-    Connection CONN() throws SQLException, ClassNotFoundException {
-        Connection conn = null;
+    // Hashing Method for Password
+    private String hashPassword(String password) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hashedBytes = md.digest(password.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hashedBytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            Log.e(TAG, "Password hashing error", e);
+            return null;
+        }
+    }
+
+    // Database Connection Method
+    private Connection getConnection() throws SQLException, ClassNotFoundException {
         try {
             Class.forName("com.mysql.jdbc.Driver");
 
-            Properties connectionProps = new Properties();
-            connectionProps.put("user", user);
-            connectionProps.put("password", pass);
-            connectionProps.put("connectTimeout", String.valueOf(TIMEOUT));
-            connectionProps.put("socketTimeout", String.valueOf(TIMEOUT));
-            connectionProps.put("autoReconnect", "true");
-            connectionProps.put("useSSL", "false"); // Disable SSL for testing
+            Properties props = new Properties();
+            props.put("user", DB_USER);
+            props.put("password", DB_PASS);
+            props.put("connectTimeout", String.valueOf(TIMEOUT));
+            props.put("socketTimeout", String.valueOf(TIMEOUT));
+            props.put("autoReconnect", "true");
+            props.put("useSSL", "false");
 
-            @SuppressLint("DefaultLocale") String connectionString = String.format("jdbc:mysql://%s:%d/%s", ip, PORT, db);
-            Log.d(TAG, "Connecting to: " + connectionString);
-
-            conn = DriverManager.getConnection(connectionString, connectionProps);
-
-            if (conn != null) {
-                Log.d(TAG, "Database connection successful");
-            }
-
-        } catch (ClassNotFoundException e) {
-            Log.e(TAG, "MySQL JDBC Driver not found", e);
-            throw e;
-        } catch (SQLException e) {
-            Log.e(TAG, "SQL Error: " + e.getMessage());
-            Log.e(TAG, "SQL State: " + e.getSQLState());
-            Log.e(TAG, "Error Code: " + e.getErrorCode());
+            @SuppressLint("DefaultLocale") String connectionString = String.format("jdbc:mysql://%s:%d/%s", DB_IP, DB_PORT, DB_NAME);
+            return DriverManager.getConnection(connectionString, props);
+        } catch (ClassNotFoundException | SQLException e) {
+            Log.e(TAG, "Connection error", e);
             throw e;
         }
-        return conn;
     }
 
+    // Test Connection Method
     @SuppressLint("StaticFieldLeak")
-    public void testConnection(final DatabaseConnectionCallback callback) {
+    public void testConnection(final DatabaseCallback callback) {
         new AsyncTask<Void, Void, ConnectionResult>() {
             @Override
             protected ConnectionResult doInBackground(Void... voids) {
                 ConnectionResult result = new ConnectionResult();
-                Connection connection = null;
-
-                try {
-                    if (!isHostReachable()) {
-                        result.setSuccess(false);
-                        result.setMessage("Cannot reach database server at " + ip + ":" + PORT);
-                        return result;
-                    }
-
-                    connection = CONN();
-                    if (connection != null && !connection.isClosed()) {
-                        if (connection.isValid(TIMEOUT/1000)) {
-                            result.setSuccess(true);
-                            result.setMessage("Connection successful");
-                        } else {
-                            result.setSuccess(false);
-                            result.setMessage("Connection established but not valid");
-                        }
-                    }
-                } catch (SQLException e) {
-                    result.setSuccess(false);
-                    result.setMessage("Database Error: " + e.getMessage());
-                } catch (ClassNotFoundException e) {
-                    result.setSuccess(false);
-                    result.setMessage("MySQL JDBC Driver not found");
+                try (Connection conn = getConnection()) {
+                    result.setSuccess(true);
+                    result.setMessage("Database connection successful");
                 } catch (Exception e) {
                     result.setSuccess(false);
-                    result.setMessage("Unexpected error: " + e.getMessage());
-                } finally {
-                    if (connection != null) {
-                        try {
-                            connection.close();
-                        } catch (SQLException e) {
-                            Log.e(TAG, "Error closing connection", e);
-                        }
-                    }
+                    result.setMessage("Connection failed: " + e.getMessage());
                 }
                 return result;
             }
 
             @Override
             protected void onPostExecute(ConnectionResult result) {
-                if (callback != null) {
-                    callback.onConnectionResult(result.isSuccess(), result.getMessage());
-                }
+                callback.onResult(result.isSuccess(), result.getMessage());
             }
         }.execute();
     }
 
-    private boolean isHostReachable() {
-        Socket socket = null;
-        try {
-            socket = new Socket();
-            socket.connect(new InetSocketAddress(ip, PORT), TIMEOUT);
-            return true;
-        } catch (IOException e) {
-            Log.e(TAG, "Host not reachable: " + e.getMessage());
-            return false;
-        } finally {
-            if (socket != null) {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    Log.e(TAG, "Error closing socket", e);
+    // User Login Method
+    @SuppressLint("StaticFieldLeak")
+    public void loginUser(final String username, final String password, final DatabaseCallback callback) {
+        new AsyncTask<Void, Void, ConnectionResult>() {
+            @Override
+            protected ConnectionResult doInBackground(Void... voids) {
+                ConnectionResult result = new ConnectionResult();
+                try (Connection conn = getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(
+                             "SELECT * FROM users WHERE email = ? AND password = ?")) {
+
+                    String hashedPassword = hashPassword(password);
+                    pstmt.setString(1, username);
+                    pstmt.setString(2, hashedPassword);
+
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        if (rs.next()) {
+                            result.setSuccess(true);
+                            result.setMessage("Login successful");
+                        } else {
+                            result.setSuccess(false);
+                            result.setMessage("Invalid username or password");
+                        }
+                    }
+                } catch (Exception e) {
+                    result.setSuccess(false);
+                    result.setMessage("Login error: " + e.getMessage());
+                    Log.e(TAG, "Login error", e);
                 }
+                return result;
             }
-        }
-    }
-}
 
-class ConnectionResult {
-    private boolean success;
-    private String message;
-
-    public ConnectionResult() {
-        this.success = false;
-        this.message = "";
+            @Override
+            protected void onPostExecute(ConnectionResult result) {
+                callback.onResult(result.isSuccess(), result.getMessage());
+            }
+        }.execute();
     }
 
-    public void setSuccess(boolean success) {
-        this.success = success;
+    // User Registration Method
+    @SuppressLint("StaticFieldLeak")
+    public void registerUser(final String phone, final String email,
+                             final String password, final DatabaseCallback callback) {
+        new AsyncTask<Void, Void, ConnectionResult>() {
+            @Override
+            protected ConnectionResult doInBackground(Void... voids) {
+                ConnectionResult result = new ConnectionResult();
+                try (Connection conn = getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(
+                             "INSERT INTO users (phone, email, password) VALUES (?, ?, ?)")) {
+
+                    String hashedPassword = hashPassword(password);
+                    pstmt.setString(1, phone);
+                    pstmt.setString(2, email);
+                    pstmt.setString(3, hashedPassword);
+
+                    int rowsAffected = pstmt.executeUpdate();
+                    if (rowsAffected > 0) {
+                        result.setSuccess(true);
+                        result.setMessage("Registration successful");
+                    } else {
+                        result.setSuccess(false);
+                        result.setMessage("Registration failed");
+                    }
+                } catch (SQLException e) {
+                    result.setSuccess(false);
+                    result.setMessage(e.getMessage().contains("Duplicate")
+                            ? "Username or email already exists"
+                            : "Registration error: " + e.getMessage());
+                    Log.e(TAG, "Registration error", e);
+                } catch (Exception e) {
+                    result.setSuccess(false);
+                    result.setMessage("Unexpected error: " + e.getMessage());
+                    Log.e(TAG, "Unexpected error", e);
+                }
+                return result;
+            }
+
+            @Override
+            protected void onPostExecute(ConnectionResult result) {
+                callback.onResult(result.isSuccess(), result.getMessage());
+            }
+        }.execute();
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    @SuppressLint("StaticFieldLeak")
+    public void insertLog(final int userId, final String sender, final String receiver,
+                          final String sourceMac, final String destinationMac,
+                          final String filename, final DatabaseCallback callback) {
+        new AsyncTask<Void, Void, ConnectionResult>() {
+            @Override
+            protected ConnectionResult doInBackground(Void... voids) {
+                ConnectionResult result = new ConnectionResult();
+                try (Connection conn = getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(
+                             "INSERT INTO logs (id, sender, receiver, source_mac, destination_mac, filename) VALUES (?, ?, ?, ?, ?, ?)")) {
+
+                    pstmt.setInt(1, userId);
+                    pstmt.setString(2, sender);
+                    pstmt.setString(3, receiver);
+                    pstmt.setString(4, sourceMac);
+                    pstmt.setString(5, destinationMac);
+                    pstmt.setString(6, filename);
+
+                    int rowsAffected = pstmt.executeUpdate();
+                    result.setSuccess(rowsAffected > 0);
+                    result.setMessage(rowsAffected > 0 ? "Log inserted successfully" : "Failed to insert log");
+                } catch (Exception e) {
+                    result.setSuccess(false);
+                    result.setMessage("Log insertion error: " + e.getMessage());
+                    Log.e(TAG, "Log insertion error", e);
+                }
+                return result;
+            }
+
+            @Override
+            protected void onPostExecute(ConnectionResult result) {
+                callback.onResult(result.isSuccess(), result.getMessage());
+            }
+        }.execute();
     }
 
-    public boolean isSuccess() {
-        return success;
-    }
+    // Internal Result Handling Class
+    static class ConnectionResult {
+        private boolean success;
+        private String message;
 
-    public String getMessage() {
-        return message;
+        public void setSuccess(boolean success) { this.success = success; }
+        public boolean isSuccess() { return success; }
+
+        public void setMessage(String message) { this.message = message; }
+        public String getMessage() { return message; }
     }
 }

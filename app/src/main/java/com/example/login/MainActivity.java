@@ -29,24 +29,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         dbHelper = new DatabaseHelper();
         @SuppressLint({"MissingInflatedId", "LocalSuppress"}) AppCompatButton login = findViewById(R.id.login);
         @SuppressLint({"MissingInflatedId", "LocalSuppress"}) AppCompatButton register = findViewById(R.id.create);
+        @SuppressLint({"MissingInflatedId", "LocalSuppress"}) AppCompatButton insertLog = findViewById(R.id.insertLogs);
+        @SuppressLint({"MissingInflatedId", "LocalSuppress"}) AppCompatButton connectionTest = findViewById(R.id.connectionTest);
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                LoginHelper loginHelper = new LoginHelper();
-                loginHelper.loginUser("test@example.com", "password123", new LoginHelper.LoginCallback() {
-                    @Override
-                    public void onLoginResult(boolean success, String message) {
-                        if (success) {
-                            // Navigate to main activity
-                            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-                        } else {
-                            // Show error message
-                            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-                        }
+                dbHelper.loginUser("pass1@pass.com", "pass", (success, message) -> {
+                    if (success) {
+                        // Login successful
+                        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+                    } else {
+                        // Login failed
+                        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -55,44 +52,56 @@ public class MainActivity extends AppCompatActivity {
         register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                RegistrationHelper registrationHelper = new RegistrationHelper();
-                registrationHelper.registerUser("6002239760", "test2@test.com", "test123",
-                        new RegistrationHelper.RegistrationCallback() {
-                            @Override
-                            public void onRegistrationResult(boolean success, String message) {
-                                if (success) {
-                                    // Show success, navigate to login
-                                    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-                                } else {
-                                    // Show error message
-                                    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-                                }
+                dbHelper.registerUser("6002239768", "pass1@pass.com", "pass",
+                        (success, message) -> {
+                            if (success) {
+                                // Registration successful
+                                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+                            } else {
+                                // Registration failed
+                                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
                             }
-                        });
+                        }
+                );
+            }
+        });
+
+        insertLog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dbHelper.insertLog(1, "Jane", "John",
+                        "00:1B:2C:3D:4E:5F", "00:5F:4E:3D:2C:1B", "file2.pdf",
+                        (success, message) -> {
+                            if (success) {
+                                // Log inserted successfully
+                                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+                            } else {
+                                // Log insertion failed
+                                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                );
             }
         });
 
         // Test connection when a button is clicked
-        findViewById(R.id.login_button).setOnClickListener(v -> {
-            // Show progress dialog
+        connectionTest.setOnClickListener(v -> {
+            // Create progress dialog
             ProgressDialog progressDialog = new ProgressDialog(this);
             progressDialog.setMessage("Testing connection...");
+            progressDialog.setCancelable(false);
             progressDialog.show();
 
-            dbHelper.testConnection(new DatabaseHelper.DatabaseConnectionCallback() {
-                @Override
-                public void onConnectionResult(boolean success, String message) {
-                    // Dismiss progress dialog
+            dbHelper.testConnection((success, message) -> {
+                // Dismiss progress dialog first
+                if (progressDialog.isShowing()) {
                     progressDialog.dismiss();
-
-                    // Show result
-                    runOnUiThread(() -> {
-                        Toast.makeText(MainActivity.this,
-                                message,
-                                success ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG
-                        ).show();
-                    });
                 }
+
+                // Show toast based on connection result
+                Toast.makeText(getApplicationContext(), message,
+                                success ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG)
+                        .show();
             });
         });
     }

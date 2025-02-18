@@ -11,7 +11,7 @@ import android.widget.TextView;
 import java.util.List;
 
 public class AnimalAdapter extends BaseAdapter {
-    private final Context context;
+    private Context context;
     private List<Animal> animals;
 
     public AnimalAdapter(Context context, List<Animal> animals) {

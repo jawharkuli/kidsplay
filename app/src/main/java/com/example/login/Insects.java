@@ -1,64 +1,58 @@
 package com.example.login;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
+import android.speech.tts.TextToSpeech;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.GridView;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link Insects#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class Insects extends Fragment {
-
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
-    public Insects() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment Insects.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static Insects newInstance(String param1, String param2) {
-        Insects fragment = new Insects();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
+    private TextToSpeech textToSpeech;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_insects, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        GridView gridView = view.findViewById(R.id.gridView);
+        textToSpeech = new TextToSpeech(requireContext(), status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                textToSpeech.setLanguage(Locale.UK);
+            }
+        });
+
+        List<Item> insects = new ArrayList<>();
+        insects.add(new Item("Butterfly", R.drawable.butterfly));
+        insects.add(new Item("Ladybug", R.drawable.ladybug));
+        insects.add(new Item("Ant", R.drawable.ant));
+        insects.add(new Item("Bee", R.drawable.housefly));
+
+        InsectAdapter insectAdapter = new InsectAdapter(requireContext(), insects);
+        gridView.setAdapter(insectAdapter);
+        gridView.setNumColumns(1); // Line by line display
+
+        gridView.setOnItemClickListener((parent, v, position, id) -> {
+            Item item = (Item) insectAdapter.getItem(position);
+            textToSpeech.speak(item.getName(), TextToSpeech.QUEUE_FLUSH, null, null);
+        });
+    }
+
+    @Override
+    public void onDestroy() {
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
+        super.onDestroy();
     }
 }

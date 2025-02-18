@@ -1,14 +1,142 @@
-<?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SettingsFragment">
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@android:color/white"
+    android:divider="?android:attr/dividerHorizontal"
+    android:showDividers="middle">
 
-    <!-- TODO: Update blank fragment layout -->
+    <!-- Profile Settings -->
     <TextView
+        android:id="@+id/btn_edit_profile"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="wrap_content"
+        android:text="@string/profile_settings"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        android:padding="12dp"
+        android:drawablePadding="8dp"
+        android:gravity="start|center_vertical"
+        android:background="?android:attr/selectableItemBackground"
+        android:onClick="openProfileSettings"/>
+        <!-- Optional icon for the button -->
 
-</FrameLayout>
+
+    <!-- Language Settings -->
+    <TextView
+        android:id="@+id/language_settings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/app_language"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        android:padding="12dp"
+        android:drawablePadding="8dp"
+        android:gravity="start|center_vertical"
+        android:background="?android:attr/selectableItemBackground"
+        android:onClick="openLanguageSettings"/>
+         <!-- Optional icon -->
+
+
+    <!-- Notifications Settings -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="start|center_vertical"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/enable_notifications"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:layout_marginEnd="8dp"/>
+        <Switch
+            android:id="@+id/notifications_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"/>
+    </LinearLayout>
+
+    <!-- Dark Mode / Light Mode -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="start|center_vertical"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/dark_mode"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:layout_marginEnd="8dp"/>
+        <Switch
+            android:id="@+id/dark_mode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <!-- Privacy Settings -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="start|center_vertical"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/data_sharing"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:layout_marginEnd="8dp"/>
+        <Switch
+            android:id="@+id/privacy_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <!-- App Version Info -->
+    <TextView
+        android:id="@+id/app_version"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/app_version"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="14sp"
+        android:padding="12dp"
+        android:gravity="center"/>
+
+    <!-- Help & Support -->
+    <TextView
+        android:id="@+id/help_support"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/help_support"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textSize="16sp"
+        android:padding="12dp"
+        android:gravity="center"
+        android:background="?android:attr/selectableItemBackground"
+        android:onClick="openHelpSupport"/>
+
+    <!-- Logout Button -->
+    <Button
+        android:id="@+id/btn_logout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/logout"
+        android:textColor="@android:color/white"
+        android:background="@color/colorAccent"
+        android:padding="12dp"
+        android:layout_marginTop="16dp"
+        android:onClick="logoutUser"/>
+
+</LinearLayout>

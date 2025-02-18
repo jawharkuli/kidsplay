@@ -37,8 +37,21 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.recyclerview)
+    implementation(libs.cardview)
+    implementation(libs.volley)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation(libs.mysql.connector.java.v5149)
-}
+    implementation(libs.glide)
+    annotationProcessor(libs.glide.compiler)
+    implementation(libs.cardview)
+    implementation(libs.gson)
+
+
+    }
+
+
+
+

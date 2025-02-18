@@ -1,108 +1,95 @@
 package com.example.login;
 
-import android.annotation.SuppressLint;
-import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
-
-import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatButton;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.core.view.GravityCompat;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationView;
 
 public class MainActivity extends AppCompatActivity {
-    private DatabaseHelper dbHelper;
+    private DrawerLayout drawerLayout;
+    public static Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        dbHelper = new DatabaseHelper();
-        @SuppressLint({"MissingInflatedId", "LocalSuppress"}) AppCompatButton login = findViewById(R.id.login);
-        @SuppressLint({"MissingInflatedId", "LocalSuppress"}) AppCompatButton register = findViewById(R.id.create);
-        @SuppressLint({"MissingInflatedId", "LocalSuppress"}) AppCompatButton insertLog = findViewById(R.id.insertLogs);
-        @SuppressLint({"MissingInflatedId", "LocalSuppress"}) AppCompatButton connectionTest = findViewById(R.id.connectionTest);
-        login.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dbHelper.loginUser("pass1@pass.com", "pass", (success, message) -> {
-                    if (success) {
-                        // Login successful
-                        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-                    } else {
-                        // Login failed
-                        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-                    }
-                });
+
+        // Initialize DrawerLayout and NavigationView
+        drawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+
+        // Setup Toolbar
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        // Set hamburger menu icon
+        toolbar.setNavigationIcon(R.drawable.ic_toggle); // Ensure you have a menu icon in res/drawable
+        toolbar.setNavigationOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+
+        // Handle Navigation Drawer item clicks
+        navigationView.setNavigationItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+
+            if (itemId == R.id.nav_settings) {
+                loadFragment(new SettingsFragment());
+            } else if (itemId == R.id.nav_logs) {
+                // No toast message here anymore
+            } else if (itemId == R.id.nav_abc) {
+                loadFragment(new ABCFragment()); // Load ABC Fragment when clicked
             }
+
+            // Close drawer after selection
+            drawerLayout.closeDrawers();
+            return true;
         });
 
-        register.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dbHelper.registerUser("6002239768", "pass1@pass.com", "pass",
-                        (success, message) -> {
-                            if (success) {
-                                // Registration successful
-                                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-                            } else {
-                                // Registration failed
-                                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                );
+        // Initialize Bottom Navigation
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+
+        // Load HomeFragment initially
+        if (savedInstanceState == null) {
+            updateToolbarTitle("Home");
+            loadFragment(new HomeFragment());
+        }
+
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                updateToolbarTitle("Home");
+                return loadFragment(new HomeFragment());
+            } else if (itemId == R.id.nav_explore) {
+                updateToolbarTitle("Explore");
+                startActivity(new Intent(MainActivity.this, ClassSelectionActivity.class));
+                return true;
+            } else if (itemId == R.id.nav_profile) {
+                updateToolbarTitle("Profile");
+                return loadFragment(new ProfileFragment());
             }
+            return false;
         });
+    }
 
-        insertLog.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dbHelper.insertLog(1, "Jane", "John",
-                        "00:1B:2C:3D:4E:5F", "00:5F:4E:3D:2C:1B", "file2.pdf",
-                        (success, message) -> {
-                            if (success) {
-                                // Log inserted successfully
-                                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-                            } else {
-                                // Log insertion failed
-                                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                );
-            }
-        });
-
-        // Test connection when a button is clicked
-        connectionTest.setOnClickListener(v -> {
-            // Create progress dialog
-            ProgressDialog progressDialog = new ProgressDialog(this);
-            progressDialog.setMessage("Testing connection...");
-            progressDialog.setCancelable(false);
-            progressDialog.show();
-
-            dbHelper.testConnection((success, message) -> {
-                // Dismiss progress dialog first
-                if (progressDialog.isShowing()) {
-                    progressDialog.dismiss();
-                }
-
-                // Show toast based on connection result
-                Toast.makeText(getApplicationContext(), message,
-                                success ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG)
-                        .show();
-            });
-        });
+    private boolean loadFragment(Fragment fragment) {
+        if (fragment != null) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, fragment)
+                    .commit();
+            return true;
+        }
+        return false;
+    }
+    public void updateToolbarTitle(String title) {
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(title);
+        }
     }
 }

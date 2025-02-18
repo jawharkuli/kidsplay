@@ -1,4 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Header Item (Optional) -->
+    <item
+        android:id="@+id/nav_header"
+        android:title="Welcome Kids!"
+        android:icon="@drawable/ic_smile"
+        android:enabled="false"
+        android:iconTint="@null"/> <!-- This removes the forced tint -->
+
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_abc"
+            android:title="Learn ABC"
+            android:icon="@drawable/ic_abc" />
+
+        <item
+            android:id="@+id/nav_logs"
+            android:title="Activity Logs"
+            android:icon="@drawable/ic_logs" />
+
+        <item
+            android:id="@+id/nav_settings"
+            android:title="Settings"
+            android:icon="@drawable/ic_settings" />
+        <item
+            android:id="@+id/nav_feedback"
+            android:title="feedback"
+            android:icon="@drawable/ic_feedback" />
+    </group>
+
 </menu>

@@ -6,13 +6,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-import android.widget.Toolbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.kidsplay.R;
-
-public class DynamicContentActivity extends AppCompatActivity implements View.OnClickListener {
+public class PrePrimaryActivity extends AppCompatActivity implements View.OnClickListener {
 
     // Constants for category identification
     public static final String EXTRA_CATEGORY = "com.example.category selector.CATEGORY";

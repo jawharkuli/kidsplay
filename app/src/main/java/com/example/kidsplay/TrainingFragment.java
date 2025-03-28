@@ -1,4 +1,4 @@
-package com.example.login;
+package com.example.kidsplay;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.example.login.R;
+import com.example.kidsplay.R;
 
 public class TrainingFragment extends Fragment {
     @Nullable

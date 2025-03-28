@@ -1,4 +1,4 @@
-package com.example.login;
+package com.example.kidsplay;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,7 +18,6 @@ public class ClassSelectionActivity extends AppCompatActivity {
     private Button exploreButton;
     private ProgressBar progressBar;
     private List<DatabaseHelper.ClassInfo> classInfoList;
-    DatabaseHelper dbHelper = new DatabaseHelper();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,25 +27,44 @@ public class ClassSelectionActivity extends AppCompatActivity {
         classSpinner = findViewById(R.id.class_spinner);
         exploreButton = findViewById(R.id.explore_button);
         progressBar = findViewById(R.id.progress_bar);
+
+        // Fixed initialization
+        DatabaseHelper dbHelper = new DatabaseHelper(); // Pass context
+
         setLoading(true);
 
         dbHelper.fetchClasses(new DatabaseHelper.ClassesCallback() {
             @Override
             public void onResult(List<DatabaseHelper.ClassInfo> classes) {
-                classInfoList = classes;
-                setupSpinner();
+                if (classes != null && !classes.isEmpty()) {
+                    classInfoList = classes;
+                    setupSpinner();
+                } else {
+                    Toast.makeText(ClassSelectionActivity.this, "No classes found!", Toast.LENGTH_SHORT).show();
+                }
                 setLoading(false);
             }
         });
 
         exploreButton.setOnClickListener(view -> {
+            if (classInfoList == null || classInfoList.isEmpty()) {
+                Toast.makeText(this, "Class list is empty!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             int selectedPosition = classSpinner.getSelectedItemPosition();
-            if (selectedPosition > 0) { // Ignore the default "Select Class"
+            if (selectedPosition > 0) { // Ignore "Select Class"
                 DatabaseHelper.ClassInfo selectedClassInfo = classInfoList.get(selectedPosition - 1);
                 String selectedClassName = selectedClassInfo.getName();
                 int selectedClassId = selectedClassInfo.getId();
 
-                Intent intent = new Intent(ClassSelectionActivity.this, DynamicContentActivity.class);
+                Intent intent;
+                if (selectedClassName.toLowerCase().contains("class")) {
+                    intent = new Intent(ClassSelectionActivity.this, PrimaryActivity.class);
+                } else {
+                    intent = new Intent(ClassSelectionActivity.this, PrePrimaryActivity.class);
+                }
+
                 intent.putExtra("classId", selectedClassId);
                 intent.putExtra("selectedClass", selectedClassName);
                 startActivity(intent);

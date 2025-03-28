@@ -1,5 +1,5 @@
 // ItemAdapter.java (Generic adapter for all categories)
-package com.example.login;
+package com.example.kidsplay;
 
 import android.content.Context;
 import android.view.LayoutInflater;

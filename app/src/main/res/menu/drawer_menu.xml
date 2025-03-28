@@ -7,7 +7,7 @@
         android:title="Welcome Kids!"
         android:icon="@drawable/ic_smile"
         android:enabled="false"
-        android:iconTint="@null"/> <!-- This removes the forced tint -->
+        android:iconTint="@null"/> <!-- This removes the forced tint -->``
 
 
     <group android:checkableBehavior="single">

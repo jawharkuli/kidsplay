@@ -1,4 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-  
-</selector>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Outer Shadow Effect -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="30dp" />
+            <solid android:color="#A0A0A0" /> <!-- Shadow Color -->
+            <padding android:bottom="5dp" android:right="5dp" />
+        </shape>
+    </item>
+
+    <!-- Main Rounded Background -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="30dp" />
+            <gradient
+                android:angle="90"
+                android:startColor="#FFD700"
+                android:endColor="#FF8C00" />
+        </shape>
+    </item>
+
+</layer-list>

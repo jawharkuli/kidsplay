@@ -1,4 +1,4 @@
-package com.example.login;
+package com.example.kidsplay;
 
 import androidx.annotation.NonNull;
 

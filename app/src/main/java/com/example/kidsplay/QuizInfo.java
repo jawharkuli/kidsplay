@@ -1,6 +1,4 @@
-package com.example.login;
-
-import com.example.login.DatabaseHelper;
+package com.example.kidsplay;
 
 public class QuizInfo {
     private final String imagePath;

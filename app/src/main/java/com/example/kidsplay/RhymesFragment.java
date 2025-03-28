@@ -1,4 +1,4 @@
-package com.example.login;
+package com.example.kidsplay;
 
 import android.annotation.SuppressLint;
 import android.media.MediaPlayer;
@@ -87,7 +87,8 @@ public class RhymesFragment extends Fragment implements RhymesAdapter.OnRhymeCli
         }
 
         DatabaseHelper databaseHelper = new DatabaseHelper();
-        databaseHelper.fetchRhymes(new DatabaseHelper.RhymesCallback() {
+        String className = ContentActivity.selectedClass; // Assuming ContentActivity has a static field for class name
+        databaseHelper.fetchRhymes(className,new DatabaseHelper.RhymesCallback() {
             @Override
             public void onResult(List<RhymeInfo> rhymes) {
                 if (isAdded()) { // Check if fragment is still attached to activity

@@ -1,6 +1,6 @@
-package com.example.login;
+package com.example.kidsplay;
 
-import static com.example.login.R.id.btnSpeakLetter;
+import static com.example.kidsplay.R.id.btnSpeakLetter;
 
 import android.content.Context;
 import android.graphics.Color;

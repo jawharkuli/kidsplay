@@ -1,7 +1,6 @@
-package com.example.login;
+package com.example.kidsplay;
 
 import android.app.Activity;
-import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;

@@ -1,4 +1,4 @@
-package com.example.login;
+package com.example.kidsplay;
 
 public class Animal {
     private String name;

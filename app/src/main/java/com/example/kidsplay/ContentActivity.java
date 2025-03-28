@@ -1,26 +1,23 @@
 // ContentActivity.java (Activity that loads fragments)
-package com.example.login;
+package com.example.kidsplay;
 
+import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
-import com.example.login.DynamicContentActivity;
-import com.example.login.QuizzesFragment;
-import com.example.login.R;
-import com.example.login.RhymesFragment;
-import com.example.login.StoryFragment;
-import com.example.login.TrainingFragment;
-
 public class ContentActivity extends AppCompatActivity {
+    public static String selectedClass;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_content);
+        Intent intent = getIntent();
+        selectedClass = intent.getStringExtra("selectedClass");
 
         // Get the category from the intent
-        int categoryId = getIntent().getIntExtra(DynamicContentActivity.EXTRA_CATEGORY, -1);
+        int categoryId = getIntent().getIntExtra(PrePrimaryActivity.EXTRA_CATEGORY, -1);
 
         // Load the appropriate fragment based on the category
         if (categoryId != -1) {
@@ -34,23 +31,23 @@ public class ContentActivity extends AppCompatActivity {
 
         // Create the appropriate fragment based on category ID
         switch (categoryId) {
-            case DynamicContentActivity.CATEGORY_RHYMES:
+            case PrePrimaryActivity.CATEGORY_RHYMES:
                 fragment = new RhymesFragment();
                 title = "Rhymes";
                 break;
-            case DynamicContentActivity.CATEGORY_QUIZ:
+            case PrePrimaryActivity.CATEGORY_QUIZ:
                 fragment = new QuizzesFragment();
                 title = "Quiz";
                 break;
-            case DynamicContentActivity.CATEGORY_TRAINING:
+            case PrePrimaryActivity.CATEGORY_TRAINING:
                 fragment = new TrainingFragment();
                 title = "Training";
                 break;
-            case DynamicContentActivity.CATEGORY_ALPHABETS:
+            case PrePrimaryActivity.CATEGORY_ALPHABETS:
                 fragment = new ABCFragment();
                 title = "Alphabet";
                 break;
-            case DynamicContentActivity.CATEGORY_DRAWING:
+            case PrePrimaryActivity.CATEGORY_DRAWING:
                 fragment = new DrawingFragment();
                 title = "Drawing";
                 break;

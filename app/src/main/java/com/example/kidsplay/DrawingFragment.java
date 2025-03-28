@@ -1,4 +1,4 @@
-package com.example.login;
+package com.example.kidsplay;
 
 import android.graphics.Color;
 import android.os.Bundle;

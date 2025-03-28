@@ -1,6 +1,6 @@
 
 // Item.java (Generic class for all categories)
-package com.example.login;
+package com.example.kidsplay;
 
 public class Item {
     private String name;

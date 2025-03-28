@@ -1,6 +1,5 @@
-package com.example.login;
+package com.example.kidsplay;
 
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -27,7 +26,7 @@ public class DatabaseHelper {
     private static final String DB_NAME = "project";
     private static final String DB_USER = "admin";
     private static final String DB_PASS = "password";
-    static final String DB_IP = "192.168.35.216";
+    static final String DB_IP = "192.168.19.216";
     private static final String DB_PORT = "3306";
     private static final int TIMEOUT = 5000;
     public static final String BASE_URL = "http://"+DB_IP+"/project/";
@@ -285,32 +284,78 @@ public class DatabaseHelper {
     }
 
     // Fetch Rhymes
-    public void fetchRhymes(final RhymesCallback callback) {
+    public void fetchRhymes(int cid, final RhymesCallback callback) {
         executor.execute(() -> {
             List<RhymeInfo> rhymes = new ArrayList<>();
+            String query = "SELECT * FROM rhymes WHERE cid = ? ORDER BY upload_date DESC";
+
             try (Connection conn = getConnection();
-                 PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM rhymes ORDER BY upload_date DESC");
-                 ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    rhymes.add(new RhymeInfo(
-                            rs.getInt("id"),
-                            rs.getInt("cid"),
-                            rs.getString("title"),
-                            rs.getString("description"),
-                            rs.getString("filetype"),
-                            rs.getString("file"),
-                            rs.getString("thumbnail"),
-                            rs.getString("duration"),
-                            rs.getString("upload_date")
-                    ));
+                 PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+                pstmt.setInt(1, cid); // Bind `cid` parameter
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        rhymes.add(new RhymeInfo(
+                                rs.getInt("id"),
+                                rs.getInt("cid"),
+                                rs.getString("title"),
+                                rs.getString("description"),
+                                rs.getString("filetype"),
+                                rs.getString("file"),
+                                rs.getString("thumbnail"),
+                                rs.getString("duration"),
+                                rs.getString("upload_date")
+                        ));
+                    }
                 }
             } catch (SQLException e) {
                 Log.e(TAG, "Error fetching rhymes", e);
+                mainHandler.post(() -> callback.onError("Error fetching rhymes: " + e.getMessage()));
+                return;
             }
 
             mainHandler.post(() -> callback.onResult(rhymes));
         });
     }
+    public void fetchRhymes(String className, final RhymesCallback callback) {
+        executor.execute(() -> {
+            List<RhymeInfo> rhymes = new ArrayList<>();
+            String query = "SELECT r.* FROM rhymes r " +
+                    "JOIN class c ON r.cid = c.id " +
+                    "WHERE c.classname = ? " +
+                    "ORDER BY r.upload_date DESC";
+
+            try (Connection conn = getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+                pstmt.setString(1, className); // Bind class name parameter
+
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        rhymes.add(new RhymeInfo(
+                                rs.getInt("id"),
+                                rs.getInt("cid"),
+                                rs.getString("title"),
+                                rs.getString("description"),
+                                rs.getString("filetype"),
+                                rs.getString("file"),
+                                rs.getString("thumbnail"),
+                                rs.getString("duration"),
+                                rs.getString("upload_date")
+                        ));
+                    }
+                }
+            } catch (SQLException e) {
+                Log.e(TAG, "Error fetching rhymes by class name", e);
+                mainHandler.post(() -> callback.onError("Error fetching rhymes: " + e.getMessage()));
+                return;
+            }
+
+            mainHandler.post(() -> callback.onResult(rhymes));
+        });
+    }
+
 
     // Fetch Quizzes
     public void fetchQuizzes(final QuizCallback callback) {

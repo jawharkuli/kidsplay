@@ -1,4 +1,4 @@
-package com.example.login;
+package com.example.kidsplay;
 
 /**
  * Model class for content items displayed in the ViewPager

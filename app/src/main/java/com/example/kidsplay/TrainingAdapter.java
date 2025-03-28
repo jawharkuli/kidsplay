@@ -1,4 +1,4 @@
-package com.example.login;
+package com.example.kidsplay;
 
 import android.view.LayoutInflater;
 import android.view.View;

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Login</string>
+    <string name="app_name">login</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
     <string name="login">Login</string>
@@ -32,4 +32,8 @@
     <string name="app_version">App Version: 1.0.0</string>
     <string name="help_support">Help and Support</string>
     <string name="logout">Logout</string>
+    <string name="GrowWise">GrowWise\n</string>
+    <string name="rhymes">rhymes</string>
+    <string name="quizes">quizes</string>
+    <string name="trainings">trainings</string>
 </resources>

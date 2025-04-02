@@ -7,8 +7,8 @@ pluginManagement {
                 includeGroupByRegex("androidx.*")
             }
         }
-        mavenCentral()
-        gradlePluginPortal()
+        mavenCentral() // You can also add other repositoris if required
+        gradlePluginPortal() // For Gradle plugins
     }
 }
 dependencyResolutionManagement {
@@ -19,6 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Login"
-include(":app")
- 
+rootProject.name = "kidsplay" // Update with your project name
+include(":app") // Make sure your app module is included  modfiy this according to current situation

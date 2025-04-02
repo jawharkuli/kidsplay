@@ -1,5 +1,7 @@
 [versions]
 agp = "8.8.0"
+ambilwarnaVersion = "2.0.1"
+colorpicker = "0.0.13"
 gson = "2.10.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -12,10 +14,18 @@ mysqlConnectorJava = "8.0.27"
 mysqlConnectorJavaVersion = "5.1.49"
 recyclerview = "1.4.0"
 cardview = "1.0.0"
+retrofit = "2.9.0"
 volley = "1.2.1"
 glide = "4.16.0"
+media3Ui = "1.5.1"
+ambilwarna = "2.0.1"
+media3Exoplayer = "1.5.1"
+swiperefreshlayout = "1.1.0"
 
 [libraries]
+ambilwarna = { module = "yuku.ambilwarna:ambilwarna", version.ref = "ambilwarna" }
+colorpicker = { module = "com.github.QuadFlask:colorpicker", version.ref = "colorpicker" }
+converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -28,9 +38,14 @@ mysql-connector-java = { module = "mysql:mysql-connector-java", version.ref = "m
 mysql-connector-java-v5149 = { module = "mysql:mysql-connector-java", version.ref = "mysqlConnectorJavaVersion" }
 recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
+media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3Ui" }
+media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3Exoplayer" }
+swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
+yukuku-ambilwarna = { module = "com.github.yukuku:ambilwarna", version.ref = "ambilwarnaVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

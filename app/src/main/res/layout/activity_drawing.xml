@@ -1,0 +1,56 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Drawing Board -->
+    <com.example.kidsplay.DrawingView
+        android:id="@+id/drawing_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFF"
+        android:layout_above="@+id/toolbar_layout"/>
+
+    <!-- Toolbar (Buttons for Undo, Clear, Redo, Color, Brush) -->
+    <LinearLayout
+        android:id="@+id/toolbar_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="10dp"
+        android:layout_alignParentBottom="true"
+        android:background="#DDDDDD">
+
+        <Button
+            android:id="@+id/btnUndo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Undo"/>
+
+        <Button
+            android:id="@+id/clear_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Clear"/>
+
+        <Button
+            android:id="@+id/btnRedo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Redo"/>
+
+        <Button
+            android:id="@+id/btnColorPicker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Color"/>
+
+        <Button
+            android:id="@+id/btnBrushSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Brush"/>
+
+    </LinearLayout>
+
+</RelativeLayout>

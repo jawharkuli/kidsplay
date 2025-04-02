@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Drawing Board -->
+    <com.example.login.DrawingView
+        android:id="@+id/drawing_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFF" />
+
+    <!-- Button Toolbar at the Bottom -->
+    <LinearLayout
+        android:id="@+id/toolbar_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="8dp"
+        android:layout_alignParentBottom="true"
+        android:background="@android:color/transparent"
+        android:weightSum="5">
+
+        <!-- Undo Button -->
+        <Button
+            android:id="@+id/btnUndo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:padding="6dp"
+
+            android:textColor="@color/black"
+            android:background="@android:color/transparent"
+            android:drawableLeft="@drawable/undo"
+            android:drawablePadding="6dp"
+            android:elevation="0dp" />
+
+        <!-- Color Picker Button -->
+        <Button
+            android:id="@+id/btnColor"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:padding="6dp"
+
+            android:textColor="@color/black"
+            android:background="@android:color/transparent"
+            android:drawableLeft="@drawable/color_palette"
+            android:drawablePadding="6dp"
+            android:elevation="0dp" />
+
+        <!-- Brush Size Button -->
+        <Button
+            android:id="@+id/btnBrush"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:padding="6dp"
+
+            android:textColor="@color/black"
+            android:background="@android:color/transparent"
+            android:drawableLeft="@drawable/brush"
+            android:drawablePadding="6dp"
+            android:elevation="0dp" />
+
+        <!-- Clear Button -->
+        <Button
+            android:id="@+id/clear_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:padding="6dp"
+            android:textColor="@color/black"
+            android:background="@android:color/transparent"
+            android:drawableLeft="@drawable/clear"
+            android:drawablePadding="6dp"
+            android:elevation="0dp" />
+
+        <!-- Redo Button -->
+        <Button
+            android:id="@+id/btnRedo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:padding="6dp"
+
+            android:textColor="@color/black"
+            android:background="@android:color/transparent"
+            android:drawableLeft="@drawable/redo"
+            android:drawablePadding="6dp"
+            android:elevation="0dp" />
+
+    </LinearLayout>
+
+</RelativeLayout>

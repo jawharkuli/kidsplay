@@ -42,7 +42,7 @@ public class QuizzesFragment extends Fragment {
 
         quizContainer = view.findViewById(R.id.quizContainer);
         submitAllButton = view.findViewById(R.id.submitAllButton);
-        databaseHelper = new DatabaseHelper();
+        databaseHelper = new DatabaseHelper(requireContext());
 
         submitAllButton.setOnClickListener(v -> submitAllQuizzes());
         String className = ContentActivity.selectedClass;

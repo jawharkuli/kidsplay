@@ -29,7 +29,7 @@ public class ClassSelectionActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progress_bar);
 
         // Fixed initialization
-        DatabaseHelper dbHelper = new DatabaseHelper(); // Pass context
+        DatabaseHelper dbHelper = new DatabaseHelper(getApplicationContext()); // Pass context
 
         setLoading(true);
 

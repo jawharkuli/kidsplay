@@ -29,8 +29,22 @@ public class ContentActivity extends AppCompatActivity {
         Fragment fragment = null;
         String title = "";
 
-        // Create the appropriate fragment based on category ID
+        // Check category ID and load fragment accordingly
         switch (categoryId) {
+            case PrePrimaryActivity.CATEGORY_ALPHABETS:
+                if ("Nursery".equals(selectedClass)) {
+                    fragment = new A_ZFragment();  // Static content for Nursery
+                    title = "A-Z Alphabets";
+                } else if ("LKG".equals(selectedClass)) {
+                    fragment = new LKGFragment();  // Static content for LKG
+                    title = "LKG Alphabets";
+                } else if ("UKG".equals(selectedClass)) {
+                    fragment = new Animals();  // Static content for UKG
+                    title = "UKG Alphabets";
+                }
+                // If the selected class is not Nursery, LKG, or UKG, don't load any fragment
+                break;
+
             case PrePrimaryActivity.CATEGORY_RHYMES:
                 fragment = new RhymesFragment();
                 title = "Rhymes";
@@ -43,14 +57,13 @@ public class ContentActivity extends AppCompatActivity {
                 fragment = new DrawingFragment();
                 title = "Training";
                 break;
-            case PrePrimaryActivity.CATEGORY_ALPHABETS:
-                fragment = new A_ZFragment();
-                title = "A_Z";
-                break;
-
             case PrePrimaryActivity.CATEGORY_NUMBERS:
                 fragment = new OneHundredFragment();
-                title = "Drawing";
+                title = "Numbers";
+                break;
+            case PrePrimaryActivity.CATEGORY_STORY:
+                fragment = new StoriesFragment();
+                title = "Stories";
                 break;
         }
 

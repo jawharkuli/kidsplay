@@ -14,10 +14,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
+import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 
@@ -78,6 +80,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
                 ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     private void initializeViews() {
         playerView = findViewById(R.id.player_view);
         titleTextView = findViewById(R.id.video_title);
@@ -112,7 +115,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
         Log.d(TAG, "Playing video: " + videoUrl);
         titleTextView.setText(videoTitle != null ? videoTitle : "Video");
-
+        Log.d("PlayerUrl",videoUrl);
         initializePlayer(videoUrl);
     }
 
@@ -147,7 +150,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
                 loadingProgress.setVisibility(View.GONE);
             }
         });
-
+        Log.d("VideoUrl",videoUrl);
         MediaItem mediaItem = MediaItem.fromUri(videoUrl);
         player.setMediaItem(mediaItem);
         player.prepare();

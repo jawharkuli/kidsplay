@@ -1,5 +1,7 @@
 package com.example.kidsplay;
 
+import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -24,17 +26,26 @@ public class DatabaseHelper {
 
     // Database Configuration - Should be moved to a secure configuration file or BuildConfig
     private static final String DB_NAME = "project";
-    private static final String DB_USER = "root";
-    private static final String DB_PASS = "root";
+    private static final String DB_USER = "admin";
+    private static final String DB_PASS = "password";
     static final String DB_IP ="192.168.220.216";
     private static final String DB_PORT ="3306";
     private static final int TIMEOUT = 5000;
     public static final String BASE_URL = "http://"+DB_IP+"/project/";
     private static final String RHYMES_API_URL = BASE_URL + "get_rhymes.php";
+
     // User session data
     private static String username = "";
     private static String userEmail = "";
     private static int userCid = 0;
+
+    // Context
+    private final Context context;
+
+    // Constructor
+    public DatabaseHelper(Context context) {
+        this.context = context;
+    }
 
     // Getters and Setters
     public String getUserEmail() { return userEmail; }
@@ -83,16 +94,20 @@ public class DatabaseHelper {
 
     public interface TrainingCallback {
         void onResult(List<TrainingInfo> trainingData);
-
         void onError(String error);
     }
 
     public interface QuizCallback {
         void onResult(List<QuizInfo> quizzes);
     }
+
+    public interface StoriesCallback {
+        void onResult(List<StoryInfo> stories);
+        void onError(String errorMessage);
+    }
+
     public interface RhymesCallback {
         void onResult(List<RhymeInfo> rhymes);
-
         void onError(String errorMessage);
     }
 
@@ -282,6 +297,7 @@ public class DatabaseHelper {
             mainHandler.post(() -> callback.onResult(files));
         });
     }
+
     public void fetchRhymes(String className, final RhymesCallback callback) {
         executor.execute(() -> {
             List<RhymeInfo> rhymes = new ArrayList<>();
@@ -317,6 +333,75 @@ public class DatabaseHelper {
             }
 
             mainHandler.post(() -> callback.onResult(rhymes));
+        });
+    }
+
+    // Modified fetchStories method to better align with StoriesFragment
+    public void fetchStories(String className, final StoriesCallback callback) {
+        Log.d(TAG, "Starting to fetch stories for class: " + className);
+
+        executor.execute(() -> {
+            List<StoryInfo> stories = new ArrayList<>();
+            String query = "SELECT s.* FROM stories s " +
+                    "JOIN class c ON s.cid = c.id " +
+                    "WHERE c.classname = ? " +
+                    "ORDER BY s.created_at DESC";
+
+            Connection conn = null;
+            PreparedStatement pstmt = null;
+            ResultSet rs = null;
+
+            try {
+                conn = getConnection();
+                if (conn == null) {
+                    Log.e(TAG, "Database connection failed");
+                    mainHandler.post(() -> callback.onError("Database connection failed"));
+                    return;
+                }
+
+                pstmt = conn.prepareStatement(query);
+                pstmt.setString(1, className); // Bind class name parameter
+
+                Log.d(TAG, "Executing query with className = " + className);
+                rs = pstmt.executeQuery();
+
+                int count = 0;
+                while (rs.next()) {
+                    count++;
+                    stories.add(new StoryInfo(
+                            rs.getInt("id"),
+                            rs.getInt("cid"),
+                            rs.getString("title"),
+                            rs.getString("description"),
+                            rs.getString("filetype"),
+                            rs.getString("file"),
+                            rs.getString("thumbnail"),
+                            rs.getString("created_at")
+                    ));
+                }
+
+                Log.d(TAG, "Query complete. Found " + count + " stories for class: " + className);
+
+                mainHandler.post(() -> {
+                    if (stories.isEmpty()) {
+                        Log.d(TAG, "No stories found for class: " + className);
+                    }
+                    callback.onResult(stories);
+                });
+
+            } catch (SQLException e) {
+                Log.e(TAG, "Error fetching stories by class name", e);
+                mainHandler.post(() -> callback.onError("Error fetching stories: " + e.getMessage()));
+            } finally {
+                // Close resources properly
+                try {
+                    if (rs != null) rs.close();
+                    if (pstmt != null) pstmt.close();
+                    if (conn != null) conn.close();
+                } catch (SQLException e) {
+                    Log.e(TAG, "Error closing database resources", e);
+                }
+            }
         });
     }
 
@@ -363,8 +448,11 @@ public class DatabaseHelper {
                     String optionC = rs.getString("option_c");
                     String optionD = rs.getString("option_d");
                     String correctOptionStr = rs.getString("correct_option");
-                    char correctOption = (correctOptionStr != null && !correctOptionStr.isEmpty()) ?
-                            correctOptionStr.charAt(0) : 'A';
+                    char correctOption = 0;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
+                        correctOption = (correctOptionStr != null && !correctOptionStr.isEmpty()) ?
+                                correctOptionStr.charAt(0) : 'A';
+                    }
 
                     Log.d(TAG, "Found quiz: ID=" + id + ", CID=" + cid + ", Question=" + question);
 
@@ -423,6 +511,8 @@ public class DatabaseHelper {
                 }
             } catch (SQLException e) {
                 Log.e(TAG, "Error fetching training data", e);
+                mainHandler.post(() -> callback.onError("Error fetching training data: " + e.getMessage()));
+                return;
             }
 
             mainHandler.post(() -> callback.onResult(trainingData));

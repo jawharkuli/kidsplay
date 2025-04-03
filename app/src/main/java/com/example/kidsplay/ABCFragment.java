@@ -7,22 +7,35 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ABCFragment extends Fragment {
+    private ViewPager2 viewPager;
+    private List<LetterItem> letterList;
+    private ABCAdapter letterAdapter;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_abc, container, false);
 
-        RecyclerView recyclerView = view.findViewById(R.id.recyclerViewABC);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        viewPager = view.findViewById(R.id.viewPager);
 
-        List<LetterItem> letterList = new ArrayList<>();
+        // Initialize the list with ABC content
+        initializeLetters();
+
+        // Set up adapter
+        letterAdapter = new ABCAdapter(requireContext(), letterList);
+        viewPager.setAdapter(letterAdapter);
+
+        return view;
+    }
+
+    private void initializeLetters() {
+        letterList = new ArrayList<>();
+        letterList.add(new LetterItem("", "Swipe up and click on the image to learn", R.drawable.swipe, ""));
         letterList.add(new LetterItem("A", "Apple", R.drawable.apple, "Aayyy"));
         letterList.add(new LetterItem("B", "Ball", R.drawable.ball, "Beeee"));
         letterList.add(new LetterItem("C", "Cat", R.drawable.cat, "Seeee"));
@@ -48,12 +61,6 @@ public class ABCFragment extends Fragment {
         letterList.add(new LetterItem("W", "Watch", R.drawable.watch, "Double-you"));
         letterList.add(new LetterItem("X", "Xylophone", R.drawable.xylophone, "Ex"));
         letterList.add(new LetterItem("Y", "Yak", R.drawable.yak, "Why"));
-        letterList.add(new LetterItem("z", "Zebra", R.drawable.zebra, "zet"));
-
-
-        LetterAdapter adapter = new LetterAdapter(getContext(), letterList);
-        recyclerView.setAdapter(adapter);
-
-        return view;
+        letterList.add(new LetterItem("Z", "Zebra", R.drawable.zebra, "zet"));
     }
 }

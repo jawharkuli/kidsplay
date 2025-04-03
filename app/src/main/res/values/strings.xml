@@ -36,4 +36,9 @@
     <string name="rhymes">rhymes</string>
     <string name="quizes">quizes</string>
     <string name="trainings">trainings</string>
+    <string name="no_stories_available">no_stories_available\n</string>
+    <string name="retry">retry\n</string>
+    <string name="no_stories_found">No Stories Found</string>
+    <string name="story_thumbnail">Story Thumbnail</string>
+    <string name="ABCDLearning">ABCD Phonics Learning</string>
 </resources>

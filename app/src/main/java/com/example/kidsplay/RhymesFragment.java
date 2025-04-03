@@ -86,7 +86,7 @@ public class RhymesFragment extends Fragment implements RhymesAdapter.OnRhymeCli
             progressBar.setVisibility(View.VISIBLE);
         }
 
-        DatabaseHelper databaseHelper = new DatabaseHelper();
+        DatabaseHelper databaseHelper = new DatabaseHelper(requireContext());
         String className = ContentActivity.selectedClass; // Assuming ContentActivity has a static field for class name
         databaseHelper.fetchRhymes(className,new DatabaseHelper.RhymesCallback() {
             @Override

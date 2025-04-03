@@ -69,7 +69,7 @@ public class ProfileFragment extends Fragment {
 
         // Initialize SharedPreferences and DatabaseHelper
         sharedPreferences = requireContext().getSharedPreferences("UserProfile", Context.MODE_PRIVATE);
-        databaseHelper = new DatabaseHelper();
+        databaseHelper = new DatabaseHelper(requireContext());
 
         // Load saved profile data
         loadUserProfile();

@@ -1,30 +1,32 @@
 package com.example.kidsplay;
 
-import static com.example.kidsplay.R.id.btnSpeakLetter;
-
 import android.content.Context;
-import android.graphics.Color;
-import android.media.MediaPlayer;
+import android.speech.tts.TextToSpeech;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import java.util.List;
+import java.util.Locale;
 
 public class ABCAdapter extends RecyclerView.Adapter<ABCAdapter.ViewHolder> {
-    private final List<ABCModel> abcList;
     private final Context context;
-    private int selectedPosition = RecyclerView.NO_POSITION; // Track selected item
+    private final List<LetterItem> letterList;
+    private TextToSpeech textToSpeech = null;
 
-    public ABCAdapter(Context context, List<ABCModel> abcList) {
+    public ABCAdapter(Context context, List<LetterItem> letterList) {
         this.context = context;
-        this.abcList = abcList;
+        this.letterList = letterList;
+
+        // Initialize TextToSpeech
+        this.textToSpeech = new TextToSpeech(context, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                textToSpeech.setLanguage(Locale.US);
+            }
+        });
     }
 
     @NonNull
@@ -36,63 +38,45 @@ public class ABCAdapter extends RecyclerView.Adapter<ABCAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        ABCModel abcModel = abcList.get(position);
+        LetterItem letterItem = letterList.get(position);
+        holder.letterText.setText(letterItem.getLetter());
+        holder.wordText.setText(letterItem.getWord());
+        holder.imageView.setImageResource(letterItem.getImageResId());
 
-        holder.letterText.setText(abcModel.getLetter());
-        holder.letterImage.setImageResource(abcModel.getImageResId());
+        // **Click Listeners for Text-to-Speech**
+        holder.letterText.setOnClickListener(v -> speak(letterItem.getLetter()));
+        holder.wordText.setOnClickListener(v -> speak(letterItem.getWord()));
+        holder.imageView.setOnClickListener(v -> speak(letterItem.getLetter() + " for " + letterItem.getWord()));
+    }
 
-        // Background Change on Click
-        holder.itemView.setBackgroundColor(
-                position == selectedPosition ? Color.parseColor("#FFD54F") : Color.TRANSPARENT
-        );
-
-        holder.itemView.setOnClickListener(v -> {
-            int previousPosition = selectedPosition;
-            selectedPosition = position;
-
-            // Update only the changed items for performance
-            notifyItemChanged(previousPosition);
-            notifyItemChanged(selectedPosition);
-        });
-
-        // Handle Pronunciation Button Click
-        holder.pronounceButton.setOnClickListener(v -> {
-            int soundResId = abcModel.getSoundResId();
-
-            // Ensure sound resource is valid
-            if (soundResId != 0) {
-                MediaPlayer mediaPlayer = MediaPlayer.create(context, soundResId);
-
-                if (mediaPlayer != null) {
-                    mediaPlayer.start();
-                    mediaPlayer.setOnCompletionListener(mp -> {
-                        mp.release();
-                    });
-                }
-            }
-        });
+    private void speak(String text) {
+        if (textToSpeech != null) {
+            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
+        }
     }
 
     @Override
     public int getItemCount() {
-        return abcList.size();
+        return letterList.size();
+    }
+
+    // **Release TTS to Prevent Memory Leaks**
+    public void releaseTextToSpeech() {
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView letterText;
-        ImageView letterImage;
-        ImageButton pronounceButton;
+        TextView letterText, wordText;
+        ImageView imageView;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             letterText = itemView.findViewById(R.id.letterText);
-            letterImage = itemView.findViewById(R.id.letter_image);
-            pronounceButton = itemView.findViewById(btnSpeakLetter);
-
-            // Check if pronounceButton exists in layout
-            if (pronounceButton == null) {
-                throw new RuntimeException("pronounceButton is missing in abc_item.xml!");
-            }
+            wordText = itemView.findViewById(R.id.wordText);
+            imageView = itemView.findViewById(R.id.letterImage);
         }
     }
 }

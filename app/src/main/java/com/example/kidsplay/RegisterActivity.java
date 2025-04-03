@@ -30,7 +30,7 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         // Initialize DatabaseHelper
-        databaseHelper = new DatabaseHelper();
+        databaseHelper = new DatabaseHelper(getApplicationContext());
 
         // Initialize Views
         editTextPhone = findViewById(R.id.editTextPhone);
@@ -100,19 +100,33 @@ public class RegisterActivity extends AppCompatActivity {
         String confirmPassword = editTextConfirmPassword.getText().toString();
         String username = editTextUsername.getText().toString().trim();
 
-        // Validate input
+        // Validate username
         if (username.isEmpty()) {
             editTextUsername.setError("Username is required");
             editTextUsername.requestFocus();
             return;
         }
 
+        // Validate phone number
         if (phone.isEmpty()) {
             editTextPhone.setError("Phone number is required");
             editTextPhone.requestFocus();
             return;
         }
 
+        if (phone.length() < 10 || phone.length() > 12) {
+            editTextPhone.setError("Phone number must be between 10 to 12 digits");
+            editTextPhone.requestFocus();
+            return;
+        }
+
+        if (!phone.matches("\\d+")) { // Ensures only numbers are allowed
+            editTextPhone.setError("Only numeric values are allowed");
+            editTextPhone.requestFocus();
+            return;
+        }
+
+        // Validate email
         if (email.isEmpty()) {
             editTextEmail.setError("Email is required");
             editTextEmail.requestFocus();
@@ -125,6 +139,7 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
+        // Validate password
         if (password.isEmpty()) {
             editTextPassword.setError("Password is required");
             editTextPassword.requestFocus();

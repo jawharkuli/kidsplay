@@ -12,7 +12,11 @@
         android:icon="@drawable/ic_explore"
         android:title="Explore"
         app:showAsAction="ifRoom" />
-
+    <item
+        android:id="@+id/nav_reels"
+        android:icon="@drawable/re"
+        android:title="REELS"
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/nav_profile"
         android:icon="@drawable/ic_about"

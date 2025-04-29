@@ -1,73 +1,80 @@
-// CategorySelectionActivity.java (Main Activity)
 package com.example.kidsplay;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import java.util.ArrayList;
+import java.util.List;
 
-public class PrimaryActivity extends AppCompatActivity implements View.OnClickListener {
+import timber.log.Timber;
 
-    // Constants for category identification
+public class PrimaryActivity extends AppCompatActivity {
+    private static final String TAG = "PrimaryActivity";
     public static final String EXTRA_CATEGORY = "com.example.category selector.CATEGORY";
-    public static final int CATEGORY_MATHS = 0;
-    public static final int CATEGORY_ENGLISH = 2;
-    public static final int CATEGORY_SCIENCE = 3;
-    public static final int CATEGORY_GK = 4;
+    public static final String EXTRA_SUBJECT_ID = "com.example.kidsplay.SUBJECT_ID";
+    public static final String EXTRA_SUBJECT_NAME = "com.example.kidsplay.SUBJECT_NAME";
 
-    public String selectedClass;
+    private String selectedClass;
+    private DatabaseHelper dbHelper;
+    private SubjectAdapter adapter;
+    private final List<DatabaseHelper.SubjectInfo> subjectsList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_primary);
+
         Intent i = getIntent();
         selectedClass = i.getStringExtra("selectedClass");
 
-        // Initialize buttons
-        Button btnMaths = findViewById(R.id.btn_maths);
-        Button btnEnglish = findViewById(R.id.btn_english);
-        Button btnScience = findViewById(R.id.btn_science);
-        Button btnGk = findViewById(R.id.btn_gk);
+        // Initialize recycler view
+        RecyclerView recyclerView = findViewById(R.id.recycler_subjects);
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 2)); // Display in 2 columns
 
+        // Update adapter initialization to pass selectedClass instead of listener
+        adapter = new SubjectAdapter(this, subjectsList, selectedClass);
+        recyclerView.setAdapter(adapter);
 
+        // Initialize database helper
+        dbHelper = new DatabaseHelper(this);
 
-        // Set click listeners
-        btnMaths.setOnClickListener(this);
-        btnEnglish.setOnClickListener(this);
-        btnScience.setOnClickListener(this);
-        btnGk.setOnClickListener(this);
+        // Load subjects from database
+        loadSubjects();
+    }
 
+    private void loadSubjects() {
+        dbHelper.fetchSubjects(new DatabaseHelper.SubjectsCallback() {
+            @SuppressLint("NotifyDataSetChanged")
+            @Override
+            public void onResult(List<DatabaseHelper.SubjectInfo> subjects) {
+                subjectsList.clear();
+                subjectsList.addAll(subjects);
+                adapter.notifyDataSetChanged();
 
+                if (subjects.isEmpty()) {
+                    Toast.makeText(PrimaryActivity.this, "No subjects found", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(PrimaryActivity.this, "Error loading subjects: " + errorMessage, Toast.LENGTH_SHORT).show();
+                Timber.tag(TAG).e("Error loading subjects: %s", errorMessage);
+            }
+        });
     }
 
     @Override
-    public void onClick(View view) {
-        int categoryId = -1;
-
-        // Determine which category was selected
-        int id = view.getId();
-        if (id == R.id.btn_rhymes) {
-            categoryId = CATEGORY_MATHS;
-            Toast.makeText(getApplicationContext(), selectedClass, Toast.LENGTH_SHORT).show(); // Display toast message with selected class name (for debugging purposes)
-        } else if (id == R.id.btn_quiz) {
-            categoryId = CATEGORY_ENGLISH;
-        } else if (id == R.id.btn_training) {
-            categoryId = CATEGORY_SCIENCE;
-        } else if (id == R.id.btn_story) {
-            categoryId = CATEGORY_GK;
-
-        }
-
-        // Launch the content activity with the selected category
-        if (categoryId != -1) {
-            Intent intent = new Intent(this, ContentActivity.class);
-            intent.putExtra("selectedClass", selectedClass);
-            intent.putExtra(EXTRA_CATEGORY, categoryId);
-            startActivity(intent);
+    protected void onDestroy() {
+        super.onDestroy();
+        if (dbHelper != null) {
+            dbHelper.cleanup();
         }
     }
 }

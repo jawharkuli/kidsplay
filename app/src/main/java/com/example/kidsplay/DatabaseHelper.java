@@ -18,17 +18,20 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import timber.log.Timber;
 
 public class DatabaseHelper {
     private static final String TAG = "DatabaseHelper";
 
     // Database Configuration - Should be moved to a secure configuration file or BuildConfig
     private static final String DB_NAME = "project";
-    private static final String DB_USER = "admin";
-    private static final String DB_PASS = "password";
-    static final String DB_IP ="192.168.220.216";
+    private static final String DB_USER = "root";
+    private static final String DB_PASS = "root";
+    static final String DB_IP ="192.168.115.216";
     private static final String DB_PORT ="3306";
     private static final int TIMEOUT = 5000;
     public static final String BASE_URL = "http://"+DB_IP+"/project/";
@@ -38,13 +41,16 @@ public class DatabaseHelper {
     private static String username = "";
     private static String userEmail = "";
     private static int userCid = 0;
+    private static long userId = -1; // Added user ID field to match SessionManager needs
 
     // Context
     private final Context context;
+    private SessionManager sessionManager; // Added SessionManager field
 
     // Constructor
     public DatabaseHelper(Context context) {
         this.context = context;
+        this.sessionManager = new SessionManager(context); // Initialize SessionManager
     }
 
     // Getters and Setters
@@ -54,6 +60,13 @@ public class DatabaseHelper {
     public static void setUsername(String username) { DatabaseHelper.username = username; }
     public int getUserCid() { return userCid; }
     public static void setUserCid(int cid) { DatabaseHelper.userCid = cid; }
+    public long getUserId() { return userId; } // Added getter for user ID
+    public static void setUserId(long id) { DatabaseHelper.userId = id; } // Added setter for user ID
+
+    // New method to get SessionManager instance
+    public SessionManager getSessionManager() {
+        return sessionManager;
+    }
 
     // Executor service for background operations
     private final ExecutorService executor = Executors.newFixedThreadPool(4);
@@ -76,6 +89,64 @@ public class DatabaseHelper {
         @Override
         public String toString() {
             return name;
+        }
+    }
+    public static class SubjectInfo {
+        private final int id;
+        private final String name;
+        private final String imageUrl;
+
+        public SubjectInfo(int id, String name, String imageUrl) {
+            this.id = id;
+            this.name = name;
+            this.imageUrl = imageUrl;
+        }
+
+        public int getId() { return id; }
+        public String getName() { return name; }
+        public String getImageUrl() { return imageUrl; }
+
+        @NonNull
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+    public static class ContentInfo {
+        private final int id;
+        private final int cid;
+        private final int sid;
+        private final String title;
+        private final String fileType;
+        private final String filePath;
+        private final String fileLink;
+        private long fileSize;
+
+        public ContentInfo(int id, int cid, int sid, String title, String fileType,
+                           String filePath, String fileLink, long fileSize) {
+            this.id = id;
+            this.cid = cid;
+            this.sid = sid;
+            this.title = title;
+            this.fileType = fileType;
+            this.filePath = filePath;
+            this.fileLink = fileLink;
+            this.fileSize = fileSize;
+        }
+
+        public int getId() { return id; }
+        public int getCid() { return cid; }
+        public int getSid() { return sid; }
+        public String getTitle() { return title; }
+        public String getFileType() { return fileType; }
+        public String getFilePath() { return filePath; }
+        public String getFileLink() { return fileLink; }
+        public long getFileSize() { return fileSize; }
+
+        @NonNull
+        @Override
+        public String toString() {
+            return title;
         }
     }
 
@@ -108,6 +179,14 @@ public class DatabaseHelper {
 
     public interface RhymesCallback {
         void onResult(List<RhymeInfo> rhymes);
+        void onError(String errorMessage);
+    }
+    public interface SubjectsCallback {
+        void onResult(List<SubjectInfo> subjects);
+        void onError(String errorMessage);
+    }
+    public interface ContentCallback {
+        void onResult(List<ContentInfo> content);
         void onError(String errorMessage);
     }
 
@@ -169,6 +248,63 @@ public class DatabaseHelper {
             mainHandler.post(() -> callback.onResult(classes));
         });
     }
+    public void fetchSubjects(final SubjectsCallback callback) {
+        executor.execute(() -> {
+            List<SubjectInfo> subjects = new ArrayList<>();
+            Connection conn = null;
+            PreparedStatement pstmt = null;
+            ResultSet rs = null;
+
+            try {
+                conn = getConnection();
+                if (conn == null) {
+                    Log.e(TAG, "Database connection failed");
+                    mainHandler.post(() -> callback.onError("Database connection failed"));
+                    return;
+                }
+
+                String query = "SELECT * FROM subjects ORDER BY id";
+                pstmt = conn.prepareStatement(query);
+
+                Log.d(TAG, "Executing query to fetch subjects");
+                rs = pstmt.executeQuery();
+
+                int count = 0;
+                while (rs.next()) {
+                    count++;
+                    subjects.add(new SubjectInfo(
+                            rs.getInt("id"),
+                            rs.getString("sname"),
+                            BASE_URL + rs.getString("image")
+                    ));
+
+                    Log.d(TAG, "Found subject: ID=" + rs.getInt("id") + ", Name=" + rs.getString("sname"));
+                }
+
+                Log.d(TAG, "Query complete. Found " + count + " subjects");
+
+                mainHandler.post(() -> {
+                    if (subjects.isEmpty()) {
+                        Log.d(TAG, "No subjects found in database");
+                    }
+                    callback.onResult(subjects);
+                });
+
+            } catch (SQLException e) {
+                Log.e(TAG, "Error fetching subjects", e);
+                mainHandler.post(() -> callback.onError("Error fetching subjects: " + e.getMessage()));
+            } finally {
+                // Close resources properly
+                try {
+                    if (rs != null) rs.close();
+                    if (pstmt != null) pstmt.close();
+                    if (conn != null) conn.close();
+                } catch (SQLException e) {
+                    Log.e(TAG, "Error closing database resources", e);
+                }
+            }
+        });
+    }
 
     // User Registration Method
     public void registerUser(final String username, final String phone, final String email,
@@ -176,10 +312,12 @@ public class DatabaseHelper {
         executor.execute(() -> {
             boolean success = false;
             String message = "";
+            long newUserId = -1;
 
             try (Connection conn = getConnection();
                  PreparedStatement pstmt = conn.prepareStatement(
-                         "INSERT INTO users (username, phone, email, password, cid) VALUES (?, ?, ?, ?, ?)")) {
+                         "INSERT INTO users (username, phone, email, password, cid) VALUES (?, ?, ?, ?, ?)",
+                         PreparedStatement.RETURN_GENERATED_KEYS)) {
 
                 String hashedPassword = hashPassword(password);
                 if (hashedPassword == null) {
@@ -197,6 +335,22 @@ public class DatabaseHelper {
 
                 int rowsAffected = pstmt.executeUpdate();
                 if (rowsAffected > 0) {
+                    // Get the generated user ID
+                    try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            newUserId = generatedKeys.getLong(1);
+                            // Set static user data
+                            DatabaseHelper.username = username;
+                            DatabaseHelper.userEmail = email;
+                            DatabaseHelper.userCid = cid;
+                            DatabaseHelper.userId = newUserId;
+
+                            // Create a session for the new user
+                            String sessionId = UUID.randomUUID().toString();
+                            sessionManager.createSession(sessionId, newUserId, username, email);
+                        }
+                    }
+
                     success = true;
                     message = "Registration successful";
                 } else {
@@ -248,9 +402,17 @@ public class DatabaseHelper {
 
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
+                        // Retrieve user data
+                        long retrievedUserId = rs.getLong("id"); // Get the user ID
                         username = rs.getString("username");
                         userEmail = rs.getString("email");
                         userCid = rs.getInt("cid");
+                        userId = retrievedUserId; // Store the user ID
+
+                        // Create session for the logged in user
+                        String sessionId = UUID.randomUUID().toString();
+                        sessionManager.createSession(sessionId, retrievedUserId, username, email);
+
                         success = true;
                         message = "Login successful";
                     } else {
@@ -268,33 +430,93 @@ public class DatabaseHelper {
         });
     }
 
-    // Fetch Files
-    public void fetchFiles(final FilesCallback callback) {
-        executor.execute(() -> {
-            List<FileInfo> files = new ArrayList<>();
-            try (Connection conn = getConnection();
-                 PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM files ORDER BY uploaded_at DESC");
-                 ResultSet rs = pstmt.executeQuery()) {
+    // Check if user session is valid
+    public boolean isUserLoggedIn() {
+        return sessionManager.isValidSession();
+    }
 
+    // Log out user
+    public void logoutUser() {
+        sessionManager.destroySession();
+        username = "";
+        userEmail = "";
+        userCid = 0;
+        userId = -1;
+    }
+
+    // Fetch Files
+    public void fetchContentForSubject(String subjectName, String className, final ContentCallback callback) {
+        Log.d(TAG, "Starting to fetch content for class: " + className + " and subject name: " + subjectName);
+
+        executor.execute(() -> {
+            List<ContentInfo> contentList = new ArrayList<>();
+            String query = "SELECT f.* FROM files f " +
+                    "JOIN class c ON f.cid = c.id " +
+                    "JOIN subjects s ON f.sid = s.id " +
+                    "WHERE c.classname = ? AND s.sname = ? " +
+                    "ORDER BY f.uploaded_at DESC";
+
+            Connection conn = null;
+            PreparedStatement pstmt = null;
+            ResultSet rs = null;
+
+            try {
+                conn = getConnection();
+                if (conn == null) {
+                    Log.e(TAG, "Database connection failed");
+                    mainHandler.post(() -> callback.onError("Database connection failed"));
+                    return;
+                }
+
+                pstmt = conn.prepareStatement(query);
+                pstmt.setString(1, className);
+                pstmt.setString(2, subjectName);
+
+                Log.d(TAG, "Executing query with className = " + className + " and subjectName = " + subjectName);
+                rs = pstmt.executeQuery();
+
+                int count = 0;
                 while (rs.next()) {
-                    files.add(new FileInfo(
+                    count++;
+                    contentList.add(new ContentInfo(
                             rs.getInt("id"),
                             rs.getInt("cid"),
                             rs.getInt("sid"),
+                            rs.getString("filename"),
                             rs.getString("filetype"),
                             rs.getString("file_path"),
-                            rs.getLong("file_size"),
                             rs.getString("file_link"),
-                            rs.getString("filename"),
-                            rs.getString("link_text"),
-                            rs.getString("uploaded_at")
+                            rs.getLong("file_size")
                     ));
-                }
-            } catch (SQLException e) {
-                Log.e(TAG, "Error fetching files", e);
-            }
 
-            mainHandler.post(() -> callback.onResult(files));
+                    Timber.tag(TAG).d("Found content: ID=" + rs.getInt("id") +
+                            ", Filename=" + rs.getString("filename") +
+                            ", Type=" + rs.getString("filetype"));
+                }
+
+                Timber.tag(TAG).d("Query complete. Found " + count + " content items for class: " +
+                        className + " and subject name: " + subjectName);
+
+                mainHandler.post(() -> {
+                    if (contentList.isEmpty()) {
+                        Timber.tag(TAG).d("No content found for class: " + className + " and subject name: " + subjectName);
+                    }
+                    callback.onResult(contentList);
+                });
+
+            } catch (SQLException e) {
+                Timber.tag(TAG).e(e, "Error fetching content for class: " + className + " and subject name: " + subjectName);
+                mainHandler.post(() -> callback.onError("Error fetching content: " + e.getMessage()));
+            } finally {
+                // Close resources properly
+                try {
+                    if (rs != null) rs.close();
+                    if (pstmt != null) pstmt.close();
+                    if (conn != null) conn.close();
+                } catch (SQLException e) {
+                    Timber.tag(TAG).e(e, "Error closing database resources");
+                }
+            }
         });
     }
 
@@ -338,7 +560,7 @@ public class DatabaseHelper {
 
     // Modified fetchStories method to better align with StoriesFragment
     public void fetchStories(String className, final StoriesCallback callback) {
-        Log.d(TAG, "Starting to fetch stories for class: " + className);
+        Timber.tag(TAG).d("Starting to fetch stories for class: %s", className);
 
         executor.execute(() -> {
             List<StoryInfo> stories = new ArrayList<>();
@@ -354,7 +576,7 @@ public class DatabaseHelper {
             try {
                 conn = getConnection();
                 if (conn == null) {
-                    Log.e(TAG, "Database connection failed");
+                    Timber.tag(TAG).e("Database connection failed");
                     mainHandler.post(() -> callback.onError("Database connection failed"));
                     return;
                 }
@@ -362,7 +584,7 @@ public class DatabaseHelper {
                 pstmt = conn.prepareStatement(query);
                 pstmt.setString(1, className); // Bind class name parameter
 
-                Log.d(TAG, "Executing query with className = " + className);
+                Timber.tag(TAG).d("Executing query with className = %s", className);
                 rs = pstmt.executeQuery();
 
                 int count = 0;
@@ -380,17 +602,17 @@ public class DatabaseHelper {
                     ));
                 }
 
-                Log.d(TAG, "Query complete. Found " + count + " stories for class: " + className);
+                Timber.tag(TAG).d("Query complete. Found " + count + " stories for class: " + className);
 
                 mainHandler.post(() -> {
                     if (stories.isEmpty()) {
-                        Log.d(TAG, "No stories found for class: " + className);
+                        Timber.tag(TAG).d("No stories found for class: %s", className);
                     }
                     callback.onResult(stories);
                 });
 
             } catch (SQLException e) {
-                Log.e(TAG, "Error fetching stories by class name", e);
+                Timber.tag(TAG).e(e, "Error fetching stories by class name");
                 mainHandler.post(() -> callback.onError("Error fetching stories: " + e.getMessage()));
             } finally {
                 // Close resources properly
@@ -491,31 +713,6 @@ public class DatabaseHelper {
                     Log.e(TAG, "Error closing database resources", e);
                 }
             }
-        });
-    }
-
-    // Fetch Training Data from Database
-    public void fetchTraining(final TrainingCallback callback) {
-        executor.execute(() -> {
-            List<TrainingInfo> trainingData = new ArrayList<>();
-            try (Connection conn = getConnection();
-                 PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM training ORDER BY id");
-                 ResultSet rs = pstmt.executeQuery()) {
-
-                while (rs.next()) {
-                    trainingData.add(new TrainingInfo(
-                            rs.getInt("id"),
-                            rs.getInt("cid"),
-                            rs.getString("sentences")
-                    ));
-                }
-            } catch (SQLException e) {
-                Log.e(TAG, "Error fetching training data", e);
-                mainHandler.post(() -> callback.onError("Error fetching training data: " + e.getMessage()));
-                return;
-            }
-
-            mainHandler.post(() -> callback.onResult(trainingData));
         });
     }
 

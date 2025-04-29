@@ -1,6 +1,9 @@
 package com.example.kidsplay;
 
+import static com.example.kidsplay.QuizResultDialog.showResultDialog;
+
 import android.annotation.SuppressLint;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,17 +14,13 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ScrollView;
 import android.widget.LinearLayout;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.core.widget.NestedScrollView;
-
 import com.bumptech.glide.Glide;
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,10 +29,15 @@ public class QuizzesFragment extends Fragment {
 
     private LinearLayout quizContainer;
     private DatabaseHelper databaseHelper;
-    private int classId = 1; // Change this dynamically based on user selection
     private List<QuizInfo> quizList = new ArrayList<>();
     private Map<Integer, Character> userAnswers = new HashMap<>();
     private Button submitAllButton;
+    private MediaPlayer backgroundMusic;
+    private MediaPlayer resultSound;
+    private MediaPlayer optionSelectSound;
+
+    // Maximum number of quizzes to display
+    private static final int MAX_QUIZZES = 10;
 
     @Nullable
     @Override
@@ -45,13 +49,17 @@ public class QuizzesFragment extends Fragment {
         databaseHelper = new DatabaseHelper(requireContext());
 
         submitAllButton.setOnClickListener(v -> submitAllQuizzes());
-        String className = ContentActivity.selectedClass;
-        fetchQuizzesFromDB();
+
+        // Start background music with safe handling
+        startBackgroundMusic();
+
+        // Load quiz questions
+        fetchRandomQuizzesFromDB();
 
         return view;
     }
 
-    private void fetchQuizzesFromDB() {
+    private void fetchRandomQuizzesFromDB() {
         String className = ContentActivity.selectedClass;
         databaseHelper.fetchQuizzesByClassName(className, new DatabaseHelper.QuizCallback() {
             @SuppressLint("SetTextI18n")
@@ -63,28 +71,30 @@ public class QuizzesFragment extends Fragment {
                     return;
                 }
 
-                quizList = quizzes;
-                quizContainer.removeAllViews(); // Clear previous content
+                // Randomize the quizzes list
+                Collections.shuffle(quizzes);
 
-                // Populate quizzes from bottom to top (reverse order)
-                for (int i = quizzes.size() - 1; i >= 0; i--) {
-                    final QuizInfo quiz = quizzes.get(i);
+                // Take only up to MAX_QUIZZES
+                quizList = quizzes.size() > MAX_QUIZZES ?
+                        quizzes.subList(0, MAX_QUIZZES) :
+                        quizzes;
+
+                quizContainer.removeAllViews();
+
+                for (int i = 0; i < quizList.size(); i++) {
+                    final QuizInfo quiz = quizList.get(i);
                     final int quizIndex = i;
 
                     View quizView = LayoutInflater.from(getContext()).inflate(R.layout.item_quiz, quizContainer, false);
 
-                    @SuppressLint({"MissingInflatedId", "LocalSuppress"}) TextView quizNumberText = quizView.findViewById(R.id.quizNumberText);
+                    TextView quizNumberText = quizView.findViewById(R.id.quizNumberText);
                     ImageView quizImage = quizView.findViewById(R.id.quizImage);
                     TextView questionText = quizView.findViewById(R.id.questionText);
                     RadioGroup optionsGroup = quizView.findViewById(R.id.optionsGroup);
 
-                    // Set quiz number
-                    quizNumberText.setText("Question " + (quizzes.size() - i) + " of " + quizzes.size());
-
-                    // Set question text
+                    quizNumberText.setText("Question " + (i + 1) + " of " + quizList.size());
                     questionText.setText(quiz.getQuestion());
 
-                    // Load Image
                     if (quiz.getImageUrl() != null && !quiz.getImageUrl().isEmpty()) {
                         quizImage.setVisibility(View.VISIBLE);
                         Glide.with(requireContext()).load(quiz.getImageUrl()).into(quizImage);
@@ -92,7 +102,6 @@ public class QuizzesFragment extends Fragment {
                         quizImage.setVisibility(View.GONE);
                     }
 
-                    // Set Options
                     String[] options = {quiz.getOptionA(), quiz.getOptionB(), quiz.getOptionC(), quiz.getOptionD()};
 
                     for (int j = 0; j < options.length; j++) {
@@ -102,10 +111,12 @@ public class QuizzesFragment extends Fragment {
                         optionsGroup.addView(optionButton);
                     }
 
-                    // Track user selection
                     optionsGroup.setOnCheckedChangeListener((group, checkedId) -> {
                         char selectedOption = (char) ('A' + checkedId);
                         userAnswers.put(quizIndex, selectedOption);
+
+                        // Play selection sound safely
+                        playOptionSelectSound();
                     });
 
                     quizContainer.addView(quizView);
@@ -125,30 +136,69 @@ public class QuizzesFragment extends Fragment {
             return;
         }
 
-        StringBuilder resultMessage = new StringBuilder();
-
         for (int i = 0; i < quizList.size(); i++) {
             QuizInfo quiz = quizList.get(i);
             Character userAnswer = userAnswers.get(i);
 
-            if (userAnswer != null) {
-                if (userAnswer == quiz.getCorrectOption()) {
-                    correctCount++;
-                    resultMessage.append("Question ").append(i + 1).append(": Correct\n");
-                } else {
-                    resultMessage.append("Question ").append(i + 1)
-                            .append(": Wrong (Correct: ").append(quiz.getCorrectOption()).append(")\n");
-                }
-            } else {
-                resultMessage.append("Question ").append(i + 1).append(": Not answered\n");
+            if (userAnswer != null && userAnswer == quiz.getCorrectOption()) {
+                correctCount++;
             }
         }
 
-        // Display results
-        Toast.makeText(getContext(), "You got " + correctCount + " out of " +
-                totalAnswered + " correct!", Toast.LENGTH_LONG).show();
+        // Play result sound safely
+        playResultSound();
 
-        // You might want to show a more detailed result in a dialog
-        // showResultDialog(resultMessage.toString(), correctCount, quizList.size());
+        // Show GIF-based result dialog
+        showResultDialog(this, correctCount, quizList.size());
+    }
+
+    private void startBackgroundMusic() {
+        if (backgroundMusic == null) {
+            backgroundMusic = MediaPlayer.create(requireContext(), R.raw.quize);
+            backgroundMusic.setLooping(true);
+        }
+        if (!backgroundMusic.isPlaying()) {
+            backgroundMusic.start();
+        }
+    }
+
+    private void playOptionSelectSound() {
+        releaseMediaPlayer(optionSelectSound);
+        optionSelectSound = MediaPlayer.create(requireContext(), R.raw.option_select);
+        optionSelectSound.start();
+    }
+
+    private void playResultSound() {
+        releaseMediaPlayer(resultSound);
+        resultSound = MediaPlayer.create(requireContext(), R.raw.well_done_sound);
+        resultSound.start();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (backgroundMusic != null && backgroundMusic.isPlaying()) {
+            backgroundMusic.pause();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        startBackgroundMusic();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        releaseMediaPlayer(backgroundMusic);
+        releaseMediaPlayer(resultSound);
+        releaseMediaPlayer(optionSelectSound);
+    }
+
+    private void releaseMediaPlayer(MediaPlayer mediaPlayer) {
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+        }
     }
 }

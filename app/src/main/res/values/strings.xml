@@ -41,4 +41,6 @@
     <string name="no_stories_found">No Stories Found</string>
     <string name="story_thumbnail">Story Thumbnail</string>
     <string name="ABCDLearning">ABCD Phonics Learning</string>
+    <string name="no_content_available">no_content_avilabel\n</string>
+    <string name="error_loading_content">erro loading content4\n</string>
 </resources>

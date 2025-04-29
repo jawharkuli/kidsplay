@@ -12,6 +12,8 @@
     <!-- On-Primary Colors -->
     <color name="colorOnPrimary">#FFFFFF</color>
     <color name="colorOnSecondary">#000000</color>
+    <color name="sky_blue">#E0F7FA</color>
+
 
     <color name="selectedColor">#6200EE</color>
     <color name="defaultColor">#757575</color>

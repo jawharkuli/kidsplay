@@ -1,0 +1,24 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- Fullscreen vertical scroll RecyclerView for reels -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/reelsRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        android:clipToPadding="false"
+        android:paddingTop="0dp"
+        android:paddingBottom="0dp" />
+
+    <!-- Optional: Loading spinner for global loading state -->
+    <ProgressBar
+        android:id="@+id/loadingSpinner"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+</FrameLayout>

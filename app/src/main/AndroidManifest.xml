@@ -1,49 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.kidsplay">
 
-    <!-- Internet permission to fetch data from XAMPP -->
     <uses-permission android:name="android.permission.INTERNET" />
-
-    <!-- Optional: If the drawing board saves images -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" /> <!-- Required only for Android < Q -->
 
     <application
         android:allowBackup="true"
         android:icon="@drawable/growwise"
         android:label="@string/GrowWise"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@drawable/growwise"
         android:supportsRtl="true"
         android:theme="@style/Theme.Login"
         android:usesCleartextTraffic="true">
-
+        <activity
+            android:name=".SimplePdfViewerActivity"
+            android:exported="false" />
         <activity
             android:name=".ContentActivity"
             android:exported="false" />
         <activity
             android:name=".VideoPlayerActivity"
-            android:exported="false" />
-
-        <!-- Main Activity as Launcher -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <!-- Login and Registration -->
+            android:exported="false" /> <!-- Login and Registration -->
         <activity
             android:name=".RegisterActivity"
             android:exported="true" />
         <activity
             android:name=".LoginActivity"
-            android:exported="true" />
-
-        <!-- Class and Content Selection -->
+            android:exported="true" /> <!-- Class selection flows -->
         <activity
             android:name=".ClassSelectionActivity"
             android:exported="true" />
@@ -52,6 +44,19 @@
             android:exported="true" />
         <activity
             android:name=".PrimaryActivity"
+            android:exported="true" /> <!-- Launcher/Main Activity -->
+        <activity
+            android:name=".PrimaryContentActivity"
             android:exported="true" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
+
 </manifest>

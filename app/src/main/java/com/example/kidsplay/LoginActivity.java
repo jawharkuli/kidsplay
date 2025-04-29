@@ -10,6 +10,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import java.util.UUID;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText editTextEmail, editTextPassword;
@@ -18,15 +19,17 @@ public class LoginActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private DatabaseHelper databaseHelper;
     private SharedPreferences sharedPreferences;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Initialize DatabaseHelper and SharedPreferences
+        // Initialize DatabaseHelper, SharedPreferences, and SessionManager
         databaseHelper = new DatabaseHelper(getApplicationContext());
         sharedPreferences = getSharedPreferences("UserProfile", MODE_PRIVATE);
+        sessionManager = new SessionManager(getApplicationContext());
 
         initializeViews();
         setupClickListeners();
@@ -64,7 +67,15 @@ public class LoginActivity extends AppCompatActivity {
                     showLoading(false);
 
                     if (success) {
-                        saveUserData();
+                        // Create a new session
+                        String sessionId = UUID.randomUUID().toString();
+                        long userId = databaseHelper.getUserId();
+                        String username = databaseHelper.getUsername();
+                        String userEmail = databaseHelper.getUserEmail();
+
+                        // Create and save session
+                        sessionManager.createSession(sessionId, userId, username, userEmail);
+
                         Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT).show();
                         navigateToMain();
                     } else {
@@ -103,14 +114,6 @@ public class LoginActivity extends AppCompatActivity {
         return true;
     }
 
-    private void saveUserData() {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("username", databaseHelper.getUsername());
-        editor.putString("email", databaseHelper.getUserEmail());
-        editor.putBoolean("isLoggedIn", true);
-        editor.apply();
-    }
-
     private void showLoading(boolean isLoading) {
         progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         buttonLogin.setEnabled(!isLoading);
@@ -129,8 +132,8 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        // Check if user is already logged in
-        if (sharedPreferences.getBoolean("isLoggedIn", false)) {
+        // Check if user session is valid
+        if (sessionManager.isValidSession()) {
             navigateToMain();
         }
     }

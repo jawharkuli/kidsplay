@@ -4,11 +4,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
+import com.bumptech.glide.Glide;
 
 public class HomeFragment extends Fragment {
     private CardView animals, flowers, fruits, insects;
@@ -27,6 +28,27 @@ public class HomeFragment extends Fragment {
         flowers = view.findViewById(R.id.flowers);
         fruits = view.findViewById(R.id.fruits);
         insects = view.findViewById(R.id.insects);
+
+        // Load GIFs from raw folder using Glide
+        Glide.with(this)
+                .asGif()
+                .load(R.raw.animals_gif) // Load GIF from raw folder
+                .into((ImageView) view.findViewById(R.id.animals_image));
+
+        Glide.with(this)
+                .asGif()
+                .load(R.raw.flowers_image) // Load GIF from raw folder
+                .into((ImageView) view.findViewById(R.id.flowers_image));
+
+        Glide.with(this)
+                .asGif()
+                .load(R.raw.fruit_gif) // Load GIF from raw folder
+                .into((ImageView) view.findViewById(R.id.fruits_image));
+
+        Glide.with(this)
+                .asGif()
+                .load(R.raw.insect_gif) // Load GIF from raw folder
+                .into((ImageView) view.findViewById(R.id.insects_image));
     }
 
     @Override
@@ -38,16 +60,13 @@ public class HomeFragment extends Fragment {
 
         // Setup back stack listener
         requireActivity().getSupportFragmentManager()
-                .addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
-                    @Override
-                    public void onBackStackChanged() {
-                        Fragment currentFragment = requireActivity().getSupportFragmentManager()
-                                .findFragmentById(R.id.fragment_container);
-                        if (currentFragment != null) {
-                            String savedTitle = currentFragment.getArguments() != null ?
-                                    currentFragment.getArguments().getString(TOOLBAR_TITLE) : "Home";
-                            updateToolbarTitle(savedTitle);
-                        }
+                .addOnBackStackChangedListener(() -> {
+                    Fragment currentFragment = requireActivity().getSupportFragmentManager()
+                            .findFragmentById(R.id.fragment_container);
+                    if (currentFragment != null) {
+                        String savedTitle = currentFragment.getArguments() != null ?
+                                currentFragment.getArguments().getString(TOOLBAR_TITLE) : "Home";
+                        updateToolbarTitle(savedTitle);
                     }
                 });
 

@@ -76,7 +76,7 @@
             android:id="@+id/display_bio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Short Bio"
+            android:text=""
             android:textSize="16sp"
             android:padding="12dp"
             android:elevation="3dp"

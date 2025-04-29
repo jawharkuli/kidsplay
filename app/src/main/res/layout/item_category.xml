@@ -1,24 +1,56 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="10dp">
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginVertical="8dp"
+    card_view:cardCornerRadius="16dp"
+    card_view:cardElevation="6dp"
+    android:foreground="?android:attr/selectableItemBackground"
+    card_view:cardUseCompatPadding="true">
 
-    <ImageView
-        android:id="@+id/categoryIcon"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:scaleType="centerCrop"
-        android:background="@drawable/rounded_background" />
-
-    <TextView
-        android:id="@+id/categoryName"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:gravity="center"
-        android:paddingTop="5dp"/>
-</LinearLayout>
+        android:orientation="vertical">
+
+        <!-- Rounded Image on Top -->
+        <ImageView
+            android:id="@+id/category_image"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true"
+            android:clipToOutline="true"
+            android:contentDescription="Category Image"
+            android:background="@drawable/rounded_top_image" />
+
+        <!-- Content Area -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/category_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Category Name"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#212121" />
+
+            <TextView
+                android:id="@+id/category_desc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Short description"
+                android:textSize="14sp"
+                android:layout_marginTop="4dp"
+                android:textColor="#757575" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

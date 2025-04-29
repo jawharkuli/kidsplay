@@ -13,6 +13,7 @@
         android:id="@+id/header_image"
         android:layout_width="80dp"
         android:layout_height="80dp"
+        android:contentDescription="TODO"
         android:src="@drawable/ic_profile_placeholde"
         android:scaleType="centerCrop"
         android:background="@drawable/circle_border"

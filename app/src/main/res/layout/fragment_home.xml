@@ -10,7 +10,6 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-
         <!-- Group 1 -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
@@ -23,11 +22,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
+                <!-- ImageView for GIF - Animals -->
                 <ImageView
+                    android:id="@+id/animals_image"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/animals"/>
+                    android:scaleType="centerCrop"/>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -56,11 +56,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
+                <!-- ImageView for GIF - Flowers -->
                 <ImageView
+                    android:id="@+id/flowers_image"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/flowers"/>
+                    android:scaleType="centerCrop"/>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -89,11 +90,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
+                <!-- ImageView for GIF - Fruits -->
                 <ImageView
+                    android:id="@+id/fruits_image"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/fruits"/>
+                    android:scaleType="centerCrop"/>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -122,11 +124,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
+                <!-- ImageView for GIF - Insects -->
                 <ImageView
+                    android:id="@+id/insects_image"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/insects"/>
+                    android:scaleType="centerCrop"/>
 
                 <TextView
                     android:layout_width="wrap_content"

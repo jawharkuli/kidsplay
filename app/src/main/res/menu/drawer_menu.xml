@@ -11,24 +11,14 @@
 
 
     <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/nav_abc"
-            android:title="Learn ABC"
-            android:icon="@drawable/ic_abc" />
 
-        <item
-            android:id="@+id/nav_logs"
-            android:title="Activity Logs"
-            android:icon="@drawable/ic_logs" />
+
 
         <item
             android:id="@+id/nav_settings"
             android:title="Settings"
             android:icon="@drawable/ic_settings" />
-        <item
-            android:id="@+id/nav_feedback"
-            android:title="feedback"
-            android:icon="@drawable/ic_feedback" />
+
     </group>
 
 </menu>

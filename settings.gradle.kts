@@ -7,7 +7,7 @@ pluginManagement {
                 includeGroupByRegex("androidx.*")
             }
         }
-        mavenCentral() // You can also add other repositoris if required
+        mavenCentral() // You can also add other repositories if required
         gradlePluginPortal() // For Gradle plugins
     }
 }
@@ -16,8 +16,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://jitpack.io") } // Fixed syntax for Kotlin DSL
     }
 }
 
 rootProject.name = "kidsplay" // Update with your project name
-include(":app") // Make sure your app module is included  modfiy this according to current situation
+include(":app") // Make sure your app module is included

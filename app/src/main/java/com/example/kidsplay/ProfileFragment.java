@@ -32,17 +32,21 @@ import org.jetbrains.annotations.Nullable;
 public class ProfileFragment extends Fragment {
     private ImageView profileImage, navProfileImage;
     private EditText nameEditText, bioEditText, classEditText;
-    private TextView displayName, displayBio, displayClass, navEmail, navName;
+    TextView displayName, displayBio, displayClass, navEmail, navName;
     private LinearLayout displayLayout, editLayout;
-    private Button saveProfileButton, logoutButton;  // Declare logoutButton
+    private Button saveProfileButton, logoutButton;
     private SharedPreferences sharedPreferences;
     private Uri selectedImageUri;
     private DatabaseHelper databaseHelper;
+    private SessionManager sessionManager;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
+
+        // Initialize SessionManager
+        sessionManager = new SessionManager(requireContext());
 
         // ProfileFragment Views
         profileImage = view.findViewById(R.id.profileImage);
@@ -56,7 +60,7 @@ public class ProfileFragment extends Fragment {
         classEditText = view.findViewById(R.id.edit_class);
         bioEditText = view.findViewById(R.id.edit_bio);
         saveProfileButton = view.findViewById(R.id.btn_save_profile);
-        logoutButton = view.findViewById(R.id.btn_logout);  // Initialize logoutButton
+        logoutButton = view.findViewById(R.id.btn_logout);
 
         // Get NavigationView from MainActivity
         NavigationView navigationView = requireActivity().findViewById(R.id.nav_view);
@@ -67,12 +71,20 @@ public class ProfileFragment extends Fragment {
         navName = headerView.findViewById(R.id.userName);
         navEmail = headerView.findViewById(R.id.userEmail);
 
+
         // Initialize SharedPreferences and DatabaseHelper
         sharedPreferences = requireContext().getSharedPreferences("UserProfile", Context.MODE_PRIVATE);
         databaseHelper = new DatabaseHelper(requireContext());
 
+        // Check if session is valid, if not redirect to login
+        if (!sessionManager.isValidSession()) {
+            redirectToLogin();
+            return view;
+        }
+
         // Load saved profile data
         loadUserProfile();
+        loadProfileData();
 
         // Edit Profile Button Click
         editProfileButton.setOnClickListener(v -> switchToEditMode());
@@ -127,20 +139,27 @@ public class ProfileFragment extends Fragment {
     }
 
     private void loadProfileData() {
-        String name = sharedPreferences.getString("name", "Your Name");
+        // Get username from SessionManager (source of truth for authentication data)
+        String username = sessionManager.getUsername();
+
+        // Get profile-specific data from SharedPreferences (which stores profile customizations)
         String userClass = sharedPreferences.getString("class", "Not Set");
         String bio = sharedPreferences.getString("bio", "Short Bio");
         String imageUri = sharedPreferences.getString("profileImageUri", "");
 
         // Set profile fragment views
-        displayName.setText(name);
+        displayName.setText(username != null ? username : "Your Name");
         displayClass.setText("Class: " + userClass);
         displayBio.setText(bio);
 
         // Load profile image if available
         if (!imageUri.isEmpty()) {
-            Glide.with(this).load(Uri.parse(imageUri)).into(profileImage);
-            Glide.with(this).load(Uri.parse(imageUri)).into(navProfileImage);
+            try {
+                Glide.with(this).load(Uri.parse(imageUri)).into(profileImage);
+                Glide.with(this).load(Uri.parse(imageUri)).into(navProfileImage);
+            } catch (Exception e) {
+                // Handle potential issues with image loading
+            }
         }
     }
 
@@ -150,29 +169,58 @@ public class ProfileFragment extends Fragment {
     }
 
     private void loadUserProfile() {
-        // Get user profile data from the database
-        String username = databaseHelper.getUsername();
-        String userEmail = databaseHelper.getUserEmail();
+        // Check if session is valid first
+        if (!sessionManager.isValidSession()) {
+            redirectToLogin();
+            return;
+        }
 
-        if (username != null && userEmail != null) {
-            navName.setText(username);
-            navEmail.setText(userEmail);
-        } else {
-            navName.setText("No name available");
-            navEmail.setText("No email available");
+        // Get user data from SessionManager
+        String username = sessionManager.getUsername();
+        String userEmail = sessionManager.getUserEmail();
+        long userId = sessionManager.getUserId();
+
+        // Set navigation drawer header info
+        navName.setText(username != null ? username : "No name available");
+        navEmail.setText(userEmail != null ? userEmail : "No email available");
+
+        // Also update the profile name from session data
+        displayName.setText(username != null ? username : "Your Name");
+
+        // Load additional profile data that might be stored in SharedPreferences
+        // but not in the session (like class, bio, profile image)
+        loadProfileData();
+
+        // You could also fetch additional user data from database using the userId
+        if (userId != -1) {
+            // Optional: Load additional user data from database
+            // User userData = databaseHelper.getUserDetails(userId);
+            // Update UI with this data if needed
         }
     }
 
     private void logoutUser() {
-        // Clear SharedPreferences (user session)
+        // First clear the session using SessionManager
+        sessionManager.destroySession();
+
+        // Clear SharedPreferences (user profile data)
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear();  // Clear all user-related preferences
+        editor.clear();
         editor.apply();
 
-        // Redirect to Login Activity or main activity
-        Intent intent = new Intent(getActivity(), LoginActivity.class); // Adjust with your login activity
+        // Show logout message
+        Toast.makeText(requireContext(), "Successfully logged out", Toast.LENGTH_SHORT).show();
+
+        // Redirect to login screen
+        redirectToLogin();
+    }
+
+    private void redirectToLogin() {
+        Intent intent = new Intent(getActivity(), LoginActivity.class);
+        // Clear any previous activities in the stack to prevent back navigation after logout
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
-        requireActivity().finish();  // Close the current activity (ProfileActivity)
+        requireActivity().finish();
     }
 
     private final ActivityResultLauncher<Intent> imagePickerLauncher =
@@ -180,7 +228,7 @@ public class ProfileFragment extends Fragment {
                 @Override
                 public void onActivityResult(ActivityResult result) {
                     if (getActivity() != null && result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        Uri selectedImageUri = result.getData().getData();  // Correctly obtain the image URI
+                        selectedImageUri = result.getData().getData();
                         Glide.with(ProfileFragment.this).load(selectedImageUri).into(profileImage);
                         Glide.with(ProfileFragment.this).load(selectedImageUri).into(navProfileImage);
 
@@ -192,5 +240,3 @@ public class ProfileFragment extends Fragment {
                 }
             });
 }
-
-

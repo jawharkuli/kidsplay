@@ -24,7 +24,7 @@
 
 
     <!-- Language Settings -->
-    <TextView
+   <!-- <TextView
         android:id="@+id/language_settings"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -36,7 +36,7 @@
         android:gravity="start|center_vertical"
         android:background="?android:attr/selectableItemBackground"
         android:onClick="openLanguageSettings"/>
-         <!-- Optional icon -->
+         - Optional icon -->
 
 
     <!-- Notifications Settings -->
@@ -115,7 +115,7 @@
         android:gravity="center"/>
 
     <!-- Help & Support -->
-    <TextView
+  <!--  <TextView
         android:id="@+id/help_support"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -125,7 +125,7 @@
         android:padding="12dp"
         android:gravity="center"
         android:background="?android:attr/selectableItemBackground"
-        android:onClick="openHelpSupport"/>
+        android:onClick="openHelpSupport"/>   -->
 
     <!-- Logout Button -->
     <Button

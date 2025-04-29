@@ -40,8 +40,6 @@ dependencies {
     implementation(libs.recyclerview)
     implementation(libs.cardview)
     implementation(libs.volley)
-    implementation(libs.media3.ui)
-    implementation(libs.media3.exoplayer)
     implementation(libs.swiperefreshlayout)
 
     // Test dependencies
@@ -49,16 +47,32 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
-    // ✅ MySQL Connector (Ensure correct version is used)
+    // MySQL Connector
     implementation(libs.mysql.connector.java.v5149)
 
-    // Additional dependencies
+    // Image loading
     implementation(libs.glide)
     annotationProcessor(libs.glide.compiler)
+    implementation(libs.picasso) // Consider using either Glide or Picasso, not both
+
+    // Network and JSON
     implementation(libs.gson)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
 
-    // ✅ Color Picker Libraries (Choose One)
-    implementation("com.github.yukuku:ambilwarna:2.0.1")
+    // Media player - choose only one version
+    implementation(libs.media3.exoplayer.v131)
+    implementation(libs.media3.ui.v131)
+
+    // Database
+    implementation(libs.room.runtime)
+    annotationProcessor(libs.room.compiler)
+
+    // Logging
+    implementation(libs.timber)
+
+    // Color Picker
+    implementation(libs.yukuku.ambilwarna)
 }
